@@ -1,0 +1,11 @@
+# No builds and objects
+/bin
+/obj
+*.[oa]
+
+# No backup files created by some editors
+*~
+
+# No extra Code::Blocks project files
+*.depend
+*.layout

@@ -5,6 +5,7 @@
 
 #include "lexer.hpp"
 
+
 void run(std::string source)
 {
     Lexer lex(source);

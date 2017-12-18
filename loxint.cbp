@@ -58,9 +58,10 @@
 			<Add option="-Wno-error=switch-default" />
 			<Add directory="src" />
 		</Compiler>
-		<Unit filename="src/main.cpp" />
+		<Unit filename="src/expr.cpp" />
 		<Unit filename="src/lexer.cpp" />
 		<Unit filename="src/lexer.hpp" />
+		<Unit filename="src/main.cpp" />
 		<Extensions>
 			<envvars />
 			<code_completion />

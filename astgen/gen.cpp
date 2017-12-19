@@ -27,6 +27,34 @@ std::vector<std::string> split(const std::string& s, char delim)
     return res;
 }
 
+bool isPointer(const std::string& s)
+{
+    return s.size() && s[s.size()-1] == '*';
+}
+
+std::string removePointer(const std::string& s)
+{
+    return s.substr(0, s.size()-1);
+}
+
+std::string argtype(const std::string& s)
+{
+    if (isPointer(s))
+    {
+        return "std::unique_ptr<" + removePointer(s) + ">&&";
+    }
+    return s;
+}
+
+std::string fieldtype(const std::string& s)
+{
+    if (isPointer(s))
+    {
+        return "std::unique_ptr<" + removePointer(s) + ">";
+    }
+    return s;
+}
+
 void defineType(std::ostream& out, std::string baseName,
                 std::string className, std::string fields)
 {
@@ -45,14 +73,21 @@ void defineType(std::ostream& out, std::string baseName,
         first = false;
         auto type = split(field, ' ')[0];
         auto name = split(field, ' ')[1];
-        out << "std::unique_ptr<" << type << ">&& " << name << "_";
+        out << argtype(type) << " " << name << "_";
     }
     out << ")\n";
     out << "    {\n";
     for (auto field : fieldList)
     {
         auto name = split(field, ' ')[1];
-        out << "        " << name << " = std::move(" << name << "_);\n";
+        if (isPointer(split(field, ' ')[0]))
+        {
+            out << "        " << name << " = std::move(" << name << "_);\n";
+        }
+        else
+        {
+            out << "        " << name << " = " << name << "_;\n";
+        }
     }
     out << "    }\n\n";
 
@@ -65,7 +100,7 @@ void defineType(std::ostream& out, std::string baseName,
     {
         auto type = split(field, ' ')[0];
         auto name = split(field, ' ')[1];
-        out << "    std::unique_ptr<" << type << "> " << name << ";\n";
+        out << "    " << fieldtype(type) << " " << name << ";\n";
     }
     out << "};\n\n";
 }
@@ -99,6 +134,7 @@ void createAst(std::ostream& out, std::string baseName,
 {
     out << "// Warning: This code is auto-generated and may be changed at any\n"
         << "// time by a script. Edits will be reverted.\n";
+    out << "#include \"token.hpp\"\n";
     out << "#include <memory>\n\n";
     std::vector<std::string> classNames;
     for (auto& s : types)
@@ -122,10 +158,10 @@ void createAst(std::ostream& out, std::string baseName,
 int main()
 {
     std::vector<std::string> types;
-    types.push_back("Binary   : Expr left, Token oper, Expr right");
-    types.push_back("Grouping : Expr expr");
-    types.push_back("Literal  : Object value");
-    types.push_back("Unary    : Token oper, Expr right");
+    types.push_back("Binary   : Expr* left, Token oper, Expr* right");
+    types.push_back("Grouping : Expr* expr");
+    types.push_back("Literal  : Token value");
+    types.push_back("Unary    : Token oper, Expr* right");
     std::ofstream out("../src/expr.cpp", std::ios::trunc);
     if (!out.is_open())
     {

@@ -162,7 +162,7 @@ int main()
     types.push_back("Grouping : Expr* expr");
     types.push_back("Literal  : Token value");
     types.push_back("Unary    : Token oper, Expr* right");
-    std::ofstream out("../src/expr.cpp", std::ios::trunc);
+    std::ofstream out("../src/expr.hpp", std::ios::trunc);
     if (!out.is_open())
     {
         std::cerr << "Could not open file for writing!\n";

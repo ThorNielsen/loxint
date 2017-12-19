@@ -55,7 +55,7 @@ std::string fieldtype(const std::string& s)
     return s;
 }
 
-void defineType(std::ostream& out, std::string baseName,
+void defineType(std::ostream& out, std::string baseName, std::string retType,
                 std::string className, std::string fields)
 {
     auto fieldList = split(fields, ',');
@@ -91,7 +91,8 @@ void defineType(std::ostream& out, std::string baseName,
     }
     out << "    }\n\n";
 
-    out << "    void* accept(Visitor& v) override\n";
+    out << "    " << retType << " accept("
+        << baseName << "Visitor& v) override\n";
     out << "    {\n";
     out << "        return v.visit" << className << baseName << "(*this);\n";
     out << "    }\n\n";
@@ -115,43 +116,45 @@ void declareClasses(std::ostream& out,
     out << "\n";
 }
 
-void defineVisitor(std::ostream& out, std::string baseName,
+void defineVisitor(std::ostream& out, std::string baseName, std::string retType,
                    const std::vector<std::string>& classNames)
 {
-    out << "class Visitor\n";
+    out << "class " << baseName << "Visitor\n";
     out << "{\n";
     out << "public:\n";
     for (auto& cName : classNames)
     {
-        out << "    void* visit" << cName << baseName << "(" << cName
-            << "&);\n";
+        out << "    virtual " << retType << " visit" << cName << baseName
+            << "(" << cName << "&) = 0;\n";
     }
     out << "};\n\n";
 }
 
-void createAst(std::ostream& out, std::string baseName,
+void createAst(std::ostream& out, std::string baseName, std::string retType,
                const std::vector<std::string>& types)
 {
     out << "// Warning: This code is auto-generated and may be changed at any\n"
         << "// time by a script. Edits will be reverted.\n";
     out << "#include \"token.hpp\"\n";
     out << "#include <memory>\n\n";
+    out << "using ExprRetType = " << retType << ";\n\n";
     std::vector<std::string> classNames;
     for (auto& s : types)
     {
         classNames.push_back(trim(split(s, ':')[0]));
     }
     declareClasses(out, classNames);
-    defineVisitor(out, baseName, classNames);
+    defineVisitor(out, baseName, retType, classNames);
     out << "class Expr\n{\n";
     out << "public:\n";
-    out << "    virtual void* accept(Visitor&) = 0;";
+    out << "    virtual " << retType << " accept("
+        << baseName << "Visitor&) = 0;";
     out << "\n};\n\n";
     for (auto& s : types)
     {
         std::string className = trim(split(s, ':')[0]);
         std::string fields = trim(split(s, ':')[1]);
-        defineType(out, baseName, className, fields);
+        defineType(out, baseName, retType, className, fields);
     }
 }
 
@@ -168,5 +171,5 @@ int main()
         std::cerr << "Could not open file for writing!\n";
         return 1;
     }
-    createAst(out, "Expr", types);
+    createAst(out, "Expr", "std::string", types);
 }

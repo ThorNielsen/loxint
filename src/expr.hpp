@@ -3,24 +3,26 @@
 #include "token.hpp"
 #include <memory>
 
+using ExprRetType = std::string;
+
 class Binary;
 class Grouping;
 class Literal;
 class Unary;
 
-class Visitor
+class ExprVisitor
 {
 public:
-    void* visitBinaryExpr(Binary&);
-    void* visitGroupingExpr(Grouping&);
-    void* visitLiteralExpr(Literal&);
-    void* visitUnaryExpr(Unary&);
+    virtual std::string visitBinaryExpr(Binary&) = 0;
+    virtual std::string visitGroupingExpr(Grouping&) = 0;
+    virtual std::string visitLiteralExpr(Literal&) = 0;
+    virtual std::string visitUnaryExpr(Unary&) = 0;
 };
 
 class Expr
 {
 public:
-    virtual void* accept(Visitor&) = 0;
+    virtual std::string accept(ExprVisitor&) = 0;
 };
 
 class Binary : public Expr
@@ -33,7 +35,7 @@ public:
         right = std::move(right_);
     }
 
-    void* accept(Visitor& v) override
+    std::string accept(ExprVisitor& v) override
     {
         return v.visitBinaryExpr(*this);
     }
@@ -51,7 +53,7 @@ public:
         expr = std::move(expr_);
     }
 
-    void* accept(Visitor& v) override
+    std::string accept(ExprVisitor& v) override
     {
         return v.visitGroupingExpr(*this);
     }
@@ -67,7 +69,7 @@ public:
         value = value_;
     }
 
-    void* accept(Visitor& v) override
+    std::string accept(ExprVisitor& v) override
     {
         return v.visitLiteralExpr(*this);
     }
@@ -84,7 +86,7 @@ public:
         right = std::move(right_);
     }
 
-    void* accept(Visitor& v) override
+    std::string accept(ExprVisitor& v) override
     {
         return v.visitUnaryExpr(*this);
     }

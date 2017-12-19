@@ -58,10 +58,12 @@
 			<Add option="-Wno-error=switch-default" />
 			<Add directory="src" />
 		</Compiler>
-		<Unit filename="src/expr.cpp" />
-		<Unit filename="src/lexer.cpp" />
+		<Unit filename="src/astprinter.hpp" />
+		<Unit filename="src/expr.hpp" />
 		<Unit filename="src/lexer.hpp" />
 		<Unit filename="src/main.cpp" />
+		<Unit filename="src/token.cpp" />
+		<Unit filename="src/token.hpp" />
 		<Extensions>
 			<envvars />
 			<code_completion />

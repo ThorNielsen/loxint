@@ -62,6 +62,8 @@
 		<Unit filename="src/expr.hpp" />
 		<Unit filename="src/lexer.hpp" />
 		<Unit filename="src/main.cpp" />
+		<Unit filename="src/parser.cpp" />
+		<Unit filename="src/parser.hpp" />
 		<Unit filename="src/token.cpp" />
 		<Unit filename="src/token.hpp" />
 		<Extensions>

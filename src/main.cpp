@@ -6,15 +6,22 @@
 #include "lexer.hpp"
 
 #include "astprinter.hpp"
+#include "parser.hpp"
 
 void run(std::string source)
 {
     Lexer lex(source);
-    for (auto tok : lex.scanTokens())
+    auto tokens = lex.scanTokens();
+    try
     {
-        std::cout << tok << ' ';
+        ASTPrinter asp;
+        Parser p;
+        asp.print(p.parse(tokens).get());
     }
-    std::cout << '\n';
+    catch (std::runtime_error& err)
+    {
+        std::cerr << "Error: " << err.what() << "\n";
+    }
 }
 
 void runPrompt()

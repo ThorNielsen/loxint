@@ -1,5 +1,7 @@
 // Warning: This code is auto-generated and may be changed at any
 // time by a script. Edits will be reverted.
+#ifndef EXPR_HPP_INCLUDED
+#define EXPR_HPP_INCLUDED
 #include "token.hpp"
 #include <memory>
 
@@ -95,3 +97,4 @@ public:
     std::unique_ptr<Expr> right;
 };
 
+#endif // EXPR_HPP_INCLUDED

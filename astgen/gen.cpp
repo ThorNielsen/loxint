@@ -135,6 +135,8 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
 {
     out << "// Warning: This code is auto-generated and may be changed at any\n"
         << "// time by a script. Edits will be reverted.\n";
+    out << "#ifndef EXPR_HPP_INCLUDED\n";
+    out << "#define EXPR_HPP_INCLUDED\n";
     out << "#include \"token.hpp\"\n";
     out << "#include <memory>\n\n";
     out << "using ExprRetType = " << retType << ";\n\n";
@@ -156,6 +158,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
         std::string fields = trim(split(s, ':')[1]);
         defineType(out, baseName, retType, className, fields);
     }
+    out << "#endif // EXPR_HPP_INCLUDED\n";
 }
 
 int main()

@@ -59,7 +59,9 @@
 			<Add directory="src" />
 		</Compiler>
 		<Unit filename="src/astprinter.hpp" />
+		<Unit filename="src/error.hpp" />
 		<Unit filename="src/expr.hpp" />
+		<Unit filename="src/interpreter.hpp" />
 		<Unit filename="src/lexer.hpp" />
 		<Unit filename="src/loxobject.cpp" />
 		<Unit filename="src/loxobject.hpp" />

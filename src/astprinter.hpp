@@ -19,7 +19,7 @@ public:
     }
     ExprRetType visitLiteralExpr(Literal& lit)
     {
-        return lit.value.lexeme;
+        return lit.value;
     }
     ExprRetType visitUnaryExpr(Unary& un)
     {

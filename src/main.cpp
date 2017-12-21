@@ -18,7 +18,7 @@ void run(std::string source)
         Parser p;
         asp.print(p.parse(tokens).get());
     }
-    catch (std::runtime_error& err)
+    catch (LoxError& err)
     {
         std::cerr << "Error: " << err.what() << "\n";
     }

@@ -167,7 +167,7 @@ int main()
     std::vector<std::string> types;
     types.push_back("Binary   : Expr* left, Token oper, Expr* right");
     types.push_back("Grouping : Expr* expr");
-    types.push_back("Literal  : Token value");
+    types.push_back("Literal  : LoxObject value");
     types.push_back("Unary    : Token oper, Expr* right");
     std::ofstream out("../src/expr.hpp", std::ios::trunc);
     if (!out.is_open())

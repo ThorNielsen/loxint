@@ -1,7 +1,8 @@
 #ifndef _LOXOBJECT_HPP_INCLUDED
 #define _LOXOBJECT_HPP_INCLUDED
 
-#include <string>
+#include "token.hpp"
+#include "error.hpp"
 
 enum class LoxType
 {
@@ -11,6 +12,8 @@ enum class LoxType
 class LoxObject
 {
 public:
+    LoxObject()
+        : string{}, number{}, type{LoxType::Nil}, boolean{} {}
     LoxObject(bool b)
         : string{}, number{}, type{LoxType::Bool}, boolean{b} {}
     LoxObject(double num)
@@ -18,9 +21,20 @@ public:
     LoxObject(std::string s)
         : string{s}, number{}, type{LoxType::String}, boolean{} {}
 
+    LoxObject(Token tok);
+
     ~LoxObject() {}
 
     bool operator==(const LoxObject& o) const;
+    bool operator<(const LoxObject& o) const;
+    LoxObject& operator+=(const LoxObject& o);
+    LoxObject& operator-=(const LoxObject& o);
+    LoxObject& operator*=(const LoxObject& o);
+    LoxObject& operator/=(const LoxObject& o);
+
+    operator std::string() const;
+    operator double() const;
+    operator bool() const;
 
     std::string string;
     double number;

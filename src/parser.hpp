@@ -2,9 +2,9 @@
 #define PARSER_HPP_INCLUDED
 
 #include "expr.hpp"
+#include "error.hpp"
 #include <vector>
 
-#include "lexer.hpp"
 
 class Parser
 {
@@ -139,7 +139,7 @@ private:
     {
         if (isCurrentEqual(type)) return advance();
         error(peek().line, "Parsing error: " + msg);
-        throw std::runtime_error("Parsing error.");
+        throw LoxError("Parsing error.");
     }
 
     std::vector<Token> m_tokens;

@@ -67,7 +67,7 @@ public:
 class Literal : public Expr
 {
 public:
-    Literal(Token value_)
+    Literal(LoxObject value_)
     {
         value = value_;
     }
@@ -77,7 +77,7 @@ public:
         return v.visitLiteralExpr(*this);
     }
 
-    Token value;
+    LoxObject value;
 };
 
 class Unary : public Expr

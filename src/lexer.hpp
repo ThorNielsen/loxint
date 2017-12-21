@@ -1,13 +1,9 @@
 #ifndef LEXER_HPP_INCLUDED
 #define LEXER_HPP_INCLUDED
 
-#include <vector>
 #include "token.hpp"
-
-inline void error(size_t line, std::string msg)
-{
-    std::cerr << "Error (" << (line+1) << "): " << msg << "\n";
-}
+#include "error.hpp"
+#include <vector>
 
 class Lexer
 {

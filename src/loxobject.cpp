@@ -104,6 +104,7 @@ bool operator==(const LoxObject& a, const LoxObject& b)
             return a.string == b.string;
         }
     }
+    if (a.type > b.type) return b == a;
     if (a.type == LoxType::Nil || b.type == LoxType::Nil) return false;
     switch (a.type)
     {
@@ -150,8 +151,17 @@ LoxObject& LoxObject::operator+=(const LoxObject& o)
         }
         return *this;
     }
-    cast(o.type);
-    return (*this) += o;
+    if (type < o.type)
+    {
+        cast(o.type);
+        return (*this) += o;
+    }
+    else
+    {
+        auto b = o;
+        b.cast(type);
+        return (*this) += b;
+    }
 }
 
 LoxObject& LoxObject::operator-=(const LoxObject& o)
@@ -172,8 +182,17 @@ LoxObject& LoxObject::operator-=(const LoxObject& o)
         }
         return *this;
     }
-    cast(o.type);
-    return (*this) -= o;
+    if (type < o.type)
+    {
+        cast(o.type);
+        return (*this) -= o;
+    }
+    else
+    {
+        auto b = o;
+        b.cast(type);
+        return (*this) -= b;
+    }
 }
 
 LoxObject& LoxObject::operator*=(const LoxObject& o)
@@ -194,8 +213,17 @@ LoxObject& LoxObject::operator*=(const LoxObject& o)
         }
         return *this;
     }
-    cast(o.type);
-    return (*this) *= o;
+    if (type < o.type)
+    {
+        cast(o.type);
+        return (*this) *= o;
+    }
+    else
+    {
+        auto b = o;
+        b.cast(type);
+        return (*this) *= b;
+    }
 }
 
 LoxObject& LoxObject::operator/=(const LoxObject& o)
@@ -216,8 +244,17 @@ LoxObject& LoxObject::operator/=(const LoxObject& o)
         }
         return *this;
     }
-    cast(o.type);
-    return (*this) /= o;
+    if (type < o.type)
+    {
+        cast(o.type);
+        return (*this) /= o;
+    }
+    else
+    {
+        auto b = o;
+        b.cast(type);
+        return (*this) /= b;
+    }
 }
 
 LoxObject operator-(LoxObject a)

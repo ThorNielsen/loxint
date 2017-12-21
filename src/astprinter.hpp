@@ -28,7 +28,7 @@ public:
 
     void print(Expr* expr)
     {
-        std::cout << expr->accept(*this) << std::endl;
+        std::cout << expr->accept(*this).string << std::endl;
     }
 private:
     std::string parenthesize(std::string name, std::vector<Expr*> exprs)
@@ -38,7 +38,7 @@ private:
         for (Expr* expr : exprs)
         {
             s += " ";
-            s += expr->accept(*this);
+            s += expr->accept(*this).string;
         }
         s += ")";
         return s;

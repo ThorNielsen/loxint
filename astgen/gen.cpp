@@ -138,6 +138,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     out << "#ifndef EXPR_HPP_INCLUDED\n";
     out << "#define EXPR_HPP_INCLUDED\n";
     out << "#include \"token.hpp\"\n";
+    out << "#include \"loxobject.hpp\"\n";
     out << "#include <memory>\n\n";
     out << "using ExprRetType = " << retType << ";\n\n";
     std::vector<std::string> classNames;
@@ -174,5 +175,5 @@ int main()
         std::cerr << "Could not open file for writing!\n";
         return 1;
     }
-    createAst(out, "Expr", "std::string", types);
+    createAst(out, "Expr", "LoxObject", types);
 }

@@ -61,6 +61,8 @@
 		<Unit filename="src/astprinter.hpp" />
 		<Unit filename="src/expr.hpp" />
 		<Unit filename="src/lexer.hpp" />
+		<Unit filename="src/loxobject.cpp" />
+		<Unit filename="src/loxobject.hpp" />
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/parser.hpp" />

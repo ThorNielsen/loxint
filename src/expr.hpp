@@ -3,9 +3,10 @@
 #ifndef EXPR_HPP_INCLUDED
 #define EXPR_HPP_INCLUDED
 #include "token.hpp"
+#include "loxobject.hpp"
 #include <memory>
 
-using ExprRetType = std::string;
+using ExprRetType = LoxObject;
 
 class Binary;
 class Grouping;
@@ -15,16 +16,16 @@ class Unary;
 class ExprVisitor
 {
 public:
-    virtual std::string visitBinaryExpr(Binary&) = 0;
-    virtual std::string visitGroupingExpr(Grouping&) = 0;
-    virtual std::string visitLiteralExpr(Literal&) = 0;
-    virtual std::string visitUnaryExpr(Unary&) = 0;
+    virtual LoxObject visitBinaryExpr(Binary&) = 0;
+    virtual LoxObject visitGroupingExpr(Grouping&) = 0;
+    virtual LoxObject visitLiteralExpr(Literal&) = 0;
+    virtual LoxObject visitUnaryExpr(Unary&) = 0;
 };
 
 class Expr
 {
 public:
-    virtual std::string accept(ExprVisitor&) = 0;
+    virtual LoxObject accept(ExprVisitor&) = 0;
 };
 
 class Binary : public Expr
@@ -37,7 +38,7 @@ public:
         right = std::move(right_);
     }
 
-    std::string accept(ExprVisitor& v) override
+    LoxObject accept(ExprVisitor& v) override
     {
         return v.visitBinaryExpr(*this);
     }
@@ -55,7 +56,7 @@ public:
         expr = std::move(expr_);
     }
 
-    std::string accept(ExprVisitor& v) override
+    LoxObject accept(ExprVisitor& v) override
     {
         return v.visitGroupingExpr(*this);
     }
@@ -71,7 +72,7 @@ public:
         value = value_;
     }
 
-    std::string accept(ExprVisitor& v) override
+    LoxObject accept(ExprVisitor& v) override
     {
         return v.visitLiteralExpr(*this);
     }
@@ -88,7 +89,7 @@ public:
         right = std::move(right_);
     }
 
-    std::string accept(ExprVisitor& v) override
+    LoxObject accept(ExprVisitor& v) override
     {
         return v.visitUnaryExpr(*this);
     }

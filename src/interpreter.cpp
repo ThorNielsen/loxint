@@ -26,10 +26,11 @@ ExprRetType Interpreter::visitBinaryExpr(Binary& bin)
 
 ExprRetType Interpreter::visitUnaryExpr(Unary& un)
 {
+    auto eval = un.right->accept(*this);
     switch (un.oper.type)
     {
-    case TokenType::Minus: return -un.right->accept(*this);
-    case TokenType::Bang: return !un.right->accept(*this);
+    case TokenType::Minus: return -eval;
+    case TokenType::Bang: return !eval;
     default:
         throw LoxError("Invalid unary expression.");
     }

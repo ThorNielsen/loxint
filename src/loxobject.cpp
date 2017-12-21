@@ -141,7 +141,7 @@ LoxObject& LoxObject::operator+=(const LoxObject& o)
         case LoxType::Nil:
             throw LoxError("Cannot add nil.");
         case LoxType::Bool:
-            throw LoxError("Cannot add bool.");
+            throw LoxError("Cannot add bools.");
         case LoxType::Number:
             number += o.number;
             break;
@@ -173,7 +173,7 @@ LoxObject& LoxObject::operator-=(const LoxObject& o)
         case LoxType::Nil:
             throw LoxError("Cannot subtract nil.");
         case LoxType::Bool:
-            throw LoxError("Cannot subtract bool.");
+            throw LoxError("Cannot subtract bools.");
         case LoxType::Number:
             number -= o.number;
             break;
@@ -204,7 +204,7 @@ LoxObject& LoxObject::operator*=(const LoxObject& o)
         case LoxType::Nil:
             throw LoxError("Cannot multiply nil.");
         case LoxType::Bool:
-            throw LoxError("Cannot multiply bool.");
+            throw LoxError("Cannot multiply bools.");
         case LoxType::Number:
             number *= o.number;
             break;
@@ -235,7 +235,7 @@ LoxObject& LoxObject::operator/=(const LoxObject& o)
         case LoxType::Nil:
             throw LoxError("Cannot divide nil.");
         case LoxType::Bool:
-            throw LoxError("Cannot divide bool.");
+            throw LoxError("Cannot divide bools.");
         case LoxType::Number:
             number /= o.number;
             break;
@@ -274,9 +274,9 @@ LoxObject operator!(LoxObject a)
     switch (a.type)
     {
     case LoxType::Nil: case LoxType::Number: case LoxType::String:
-        throw LoxError("Unary minus is not defined for current type.");
+        throw LoxError("Logical negation is only defined for bools.");
     case LoxType::Bool:
-        a.number = -a.number;
+        a.boolean = !a.boolean;
     }
     return a;
 }

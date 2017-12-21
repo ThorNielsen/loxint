@@ -83,7 +83,7 @@ LoxObject::operator bool() const
     case LoxType::Nil: return false;
     case LoxType::Bool: return boolean;
     case LoxType::Number: return number != 0.;
-    case LoxType::String: return (string != "false") && (string != "");
+    case LoxType::String: return string != "";
     }
     return false;
 }
@@ -273,10 +273,19 @@ LoxObject operator!(LoxObject a)
 {
     switch (a.type)
     {
-    case LoxType::Nil: case LoxType::Number: case LoxType::String:
-        throw LoxError("Logical negation is only defined for bools.");
+    case LoxType::Nil:
+        a.boolean = true;
+        break;
+    case LoxType::Number:
+        a.boolean = a.number == 0.;
+        break;
+    case LoxType::String:
+        a.boolean = a.string == "";
+        break;
     case LoxType::Bool:
         a.boolean = !a.boolean;
+        break;
     }
+    a.type = LoxType::Bool;
     return a;
 }

@@ -57,14 +57,6 @@ void runFile(std::string path)
 
 int main(int argc, char* argv[])
 {
-    std::unique_ptr<Expr> expr{(new
-        Binary(std::unique_ptr<Expr>(new Unary(Token{"-", TokenType::Minus, 0},
-                                  std::unique_ptr<Expr>((new Literal(Token{"123", TokenType::Number, 0}))))),
-               Token{"*", TokenType::Star, 0},
-               std::unique_ptr<Expr>(new Grouping(std::unique_ptr<Expr>(new Literal(Token{"45.67", TokenType::Number, 0})))))
-    )};
-    ASTPrinter asp;
-    asp.print(expr.get());
     if (argc > 2)
     {
         std::string execName = argv[0];

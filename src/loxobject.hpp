@@ -6,8 +6,13 @@
 
 enum class LoxType
 {
-    Nil, Bool, Number, String
+    Nil = 0, Bool = 1, Number = 2, String = 3
 };
+
+inline bool operator<(LoxType a, LoxType b)
+{
+    return static_cast<int>(a) < static_cast<int>(b);
+}
 
 class LoxObject
 {
@@ -25,8 +30,6 @@ public:
 
     ~LoxObject() {}
 
-    bool operator==(const LoxObject& o) const;
-    bool operator<(const LoxObject& o) const;
     LoxObject& operator+=(const LoxObject& o);
     LoxObject& operator-=(const LoxObject& o);
     LoxObject& operator*=(const LoxObject& o);
@@ -40,7 +43,62 @@ public:
     double number;
     LoxType type;
     bool boolean;
+private:
+    void cast(LoxType t)
+    {
+        switch (t)
+        {
+        case LoxType::Nil: break;
+        case LoxType::Bool: boolean = (bool)(*this); break;
+        case LoxType::Number: number = (double)(*this); break;
+        case LoxType::String: string = (std::string)(*this); break;
+        }
+        type = t;
+    }
 };
+
+LoxObject operator-(LoxObject a);
+LoxObject operator!(LoxObject a);
+
+bool operator==(const LoxObject& a, const LoxObject& b);
+bool operator<(const LoxObject& a, const LoxObject& b);
+
+inline bool operator!=(const LoxObject& a, const LoxObject& b)
+{
+    return !(a == b);
+}
+
+inline bool operator<=(const LoxObject& a, const LoxObject& b)
+{
+    return a < b || a == b;
+}
+
+inline bool operator>(const LoxObject& a, const LoxObject& b)
+{
+    return !(a <= b);
+}
+
+inline bool operator>=(const LoxObject& a, const LoxObject& b)
+{
+    return !(a < b);
+}
+
+inline LoxObject operator+(LoxObject a, const LoxObject& b)
+{
+    return a += b;
+}
+inline LoxObject operator-(LoxObject a, const LoxObject& b)
+{
+    return a -= b;
+}
+inline LoxObject operator*(LoxObject a, const LoxObject& b)
+{
+    return a *= b;
+}
+inline LoxObject operator/(LoxObject a, const LoxObject& b)
+{
+    return a /= b;
+}
 
 #endif // _LOXOBJECT_HPP_INCLUDED
 

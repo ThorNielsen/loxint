@@ -7,6 +7,7 @@
 
 #include "astprinter.hpp"
 #include "parser.hpp"
+#include "interpreter.hpp"
 
 void run(std::string source)
 {
@@ -17,6 +18,8 @@ void run(std::string source)
         ASTPrinter asp;
         Parser p;
         asp.print(p.parse(tokens).get());
+        Interpreter in;
+        std::cout << (std::string)in.interpret(p.parse(tokens).get()) << std::endl;
     }
     catch (LoxError& err)
     {

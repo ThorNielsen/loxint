@@ -45,7 +45,12 @@ LoxObject::operator std::string() const
     {
     case LoxType::Nil: return "";
     case LoxType::Bool: return boolean ? "true" : "false";
-    case LoxType::Number: return std::to_string(number);
+    case LoxType::Number:
+    {
+        std::stringstream ss;
+        ss << number;
+        return ss.str();
+    }
     case LoxType::String: return string;
     }
     return "impossible";
@@ -60,13 +65,13 @@ LoxObject::operator double() const
     case LoxType::Number: return number;
     case LoxType::String:
         std::stringstream ss(string);
-        double d;
-        ss >> d;
+        double num;
+        ss >> num;
         if (ss.fail() || ss.bad())
         {
             throw LoxError("Bad cast.");
         }
-        return d;
+        return num;
     }
     return 69105.;
 }
@@ -83,43 +88,158 @@ LoxObject::operator bool() const
     return false;
 }
 
-bool LoxObject::operator==(const LoxObject& o) const
+bool operator==(const LoxObject& a, const LoxObject& b)
+{
+    if (a.type == b.type)
+    {
+        switch (a.type)
+        {
+        case LoxType::Nil:
+            return true;
+        case LoxType::Bool:
+            return a.boolean == b.boolean;
+        case LoxType::Number:
+            return a.number == b.number;
+        case LoxType::String:
+            return a.string == b.string;
+        }
+    }
+    if (a.type == LoxType::Nil || b.type == LoxType::Nil) return false;
+    switch (a.type)
+    {
+    case LoxType::Bool: return a.boolean == (bool)b;
+    case LoxType::Number: return a.number == (double)b;
+    case LoxType::String: return a.string == (std::string)b;
+    }
+    return false;
+}
+
+bool operator<(const LoxObject& a, const LoxObject& b)
+{
+    if (a.type == b.type)
+    {
+        switch (a.type)
+        {
+        case LoxType::Nil: case LoxType::Bool:
+            throw LoxError("Nil and bool are not well-ordered.");
+        case LoxType::Number:
+            return a.number < b.number;
+        case LoxType::String:
+            return a.string < b.string;
+        }
+    }
+    throw LoxError("Only objects of the same type can be well-ordered.");
+}
+
+LoxObject& LoxObject::operator+=(const LoxObject& o)
 {
     if (type == o.type)
     {
         switch (type)
         {
         case LoxType::Nil:
-            return true;
+            throw LoxError("Cannot add nil.");
         case LoxType::Bool:
-            return boolean == o.boolean;
+            throw LoxError("Cannot add bool.");
         case LoxType::Number:
-            return number == o.number;
+            number += o.number;
+            break;
         case LoxType::String:
-            return string == o.string;
+            string += o.string;
+            break;
         }
+        return *this;
     }
-    if (type == LoxType::Nil || o.type == LoxType::Nil) return false;
-    switch (type)
+    cast(o.type);
+    return (*this) += o;
+}
+
+LoxObject& LoxObject::operator-=(const LoxObject& o)
+{
+    if (type == o.type)
     {
-    case LoxType::Bool:
-        switch(o.type)
+        switch (type)
         {
-            case LoxType::Number: return boolean == (o.number != 0);
-            case LoxType::String: return boolean == (o.string != "");
+        case LoxType::Nil:
+            throw LoxError("Cannot subtract nil.");
+        case LoxType::Bool:
+            throw LoxError("Cannot subtract bool.");
+        case LoxType::Number:
+            number -= o.number;
+            break;
+        case LoxType::String:
+            throw LoxError("Cannot subtract string.");
         }
-    case LoxType::Number:
-        switch(o.type)
-        {
-            case LoxType::Bool: return (number != 0) == o.boolean;
-            case LoxType::String: return std::to_string(number) == o.string;
-        }
-    case LoxType::String:
-        switch(o.type)
-        {
-            case LoxType::Bool: return (string != "") == o.boolean;
-            case LoxType::Number: return string == std::to_string(o.number);
-        }
+        return *this;
     }
-    return false;
+    cast(o.type);
+    return (*this) -= o;
+}
+
+LoxObject& LoxObject::operator*=(const LoxObject& o)
+{
+    if (type == o.type)
+    {
+        switch (type)
+        {
+        case LoxType::Nil:
+            throw LoxError("Cannot multiply nil.");
+        case LoxType::Bool:
+            throw LoxError("Cannot multiply bool.");
+        case LoxType::Number:
+            number *= o.number;
+            break;
+        case LoxType::String:
+            throw LoxError("Cannot multiply strings.");
+        }
+        return *this;
+    }
+    cast(o.type);
+    return (*this) *= o;
+}
+
+LoxObject& LoxObject::operator/=(const LoxObject& o)
+{
+    if (type == o.type)
+    {
+        switch (type)
+        {
+        case LoxType::Nil:
+            throw LoxError("Cannot divide nil.");
+        case LoxType::Bool:
+            throw LoxError("Cannot divide bool.");
+        case LoxType::Number:
+            number /= o.number;
+            break;
+        case LoxType::String:
+            throw LoxError("Cannot divide strings.");
+        }
+        return *this;
+    }
+    cast(o.type);
+    return (*this) /= o;
+}
+
+LoxObject operator-(LoxObject a)
+{
+    switch (a.type)
+    {
+    case LoxType::Nil: case LoxType::Bool: case LoxType::String:
+        throw LoxError("Unary minus is not defined for current type.");
+    case LoxType::Number:
+        a.number = -a.number;
+    }
+    return a;
+}
+
+LoxObject operator!(LoxObject a)
+{
+    switch (a.type)
+    {
+    case LoxType::Nil: case LoxType::Number: case LoxType::String:
+        throw LoxError("Unary minus is not defined for current type.");
+    case LoxType::Bool:
+        a.number = -a.number;
+    }
+    return a;
 }

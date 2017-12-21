@@ -19,7 +19,7 @@ public:
     }
     ExprRetType visitLiteralExpr(Literal& lit)
     {
-        return lit.value;
+        return LoxObject((std::string)lit.value);
     }
     ExprRetType visitUnaryExpr(Unary& un)
     {

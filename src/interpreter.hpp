@@ -2,21 +2,29 @@
 #define INTERPRETER_HPP_INCLUDED
 
 #include "expr.hpp"
+#include "loxobject.hpp"
 
 class Interpreter : public ExprVisitor
 {
 public:
     Interpreter() {}
     ~Interpreter() {}
-/*
-    ExprRetType visitBinaryExpr(Binary& bin) override
+
+    LoxObject interpret(Expr* expr)
     {
-        return
+        return expr->accept(*this);
     }
+
+    ExprRetType visitBinaryExpr(Binary&) override;
     ExprRetType visitGroupingExpr(Grouping& grp) override
     {
-
-    }*/
+        return grp.expr->accept(*this);
+    }
+    ExprRetType visitLiteralExpr(Literal& lit) override
+    {
+        return lit.value;
+    }
+    ExprRetType visitUnaryExpr(Unary&) override;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

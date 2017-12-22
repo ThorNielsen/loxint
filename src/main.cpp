@@ -9,17 +9,14 @@
 #include "parser.hpp"
 #include "interpreter.hpp"
 
-void run(std::string source)
+void run(Interpreter& interpreter, std::string source)
 {
-    Lexer lex(source);
-    auto tokens = lex.scanTokens();
     try
     {
-        ASTPrinter asp;
+        Lexer lex(source);
         Parser p;
-        asp.print(p.parse(tokens).get());
-        Interpreter in;
-        std::cout << (std::string)in.interpret(p.parse(tokens).get()) << std::endl;
+        auto ast = p.parse(lex.scanTokens());
+        std::cout << (std::string)interpreter.interpret(ast.get()) << std::endl;
     }
     catch (LoxError& err)
     {
@@ -29,12 +26,13 @@ void run(std::string source)
 
 void runPrompt()
 {
+    Interpreter interpreter;
     while (std::cin.good())
     {
         std::cout << "> ";
         std::string line;
         std::getline(std::cin, line, '\n');
-        run(line);
+        run(interpreter, line);
     }
 }
 
@@ -52,7 +50,8 @@ void runFile(std::string path)
     in.seekg(std::ios::beg, std::ios::beg);
     code.resize(end - start);
     in.read(&code[0], end - start);
-    run(code);
+    Interpreter interpreter;
+    run(interpreter, code);
 }
 
 int main(int argc, char* argv[])

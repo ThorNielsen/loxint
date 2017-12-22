@@ -43,7 +43,7 @@ LoxObject::operator std::string() const
 {
     switch (type)
     {
-    case LoxType::Nil: return "";
+    case LoxType::Nil: return "nil";
     case LoxType::Bool: return boolean ? "true" : "false";
     case LoxType::Number:
     {

@@ -23,7 +23,12 @@ private:
     using PExpr = std::unique_ptr<Expr>;
     PExpr expression()
     {
-        return equality();
+        auto expr = equality();
+        if (!atEnd())
+        {
+            throw LoxError("Multiple expressions.");
+        }
+        return expr;
     }
     PExpr equality()
     {

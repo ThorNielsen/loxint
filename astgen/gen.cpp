@@ -29,7 +29,12 @@ std::vector<std::string> split(const std::string& s, char delim)
 
 bool isPointer(const std::string& s)
 {
-    return s.size() && s[s.size()-1] == '*';
+    return s.size() && s.back() == '*';
+}
+
+bool isMoving(const std::string& s)
+{
+    return s.size() && s.back() == '\'';
 }
 
 std::string uppercase(std::string s)
@@ -52,6 +57,10 @@ std::string argtype(const std::string& s)
     {
         return "std::unique_ptr<" + removePointer(s) + ">&&";
     }
+    if (isMoving(s))
+    {
+        return removePointer(s) + "&&";
+    }
     return s;
 }
 
@@ -60,6 +69,10 @@ std::string fieldtype(const std::string& s)
     if (isPointer(s))
     {
         return "std::unique_ptr<" + removePointer(s) + ">";
+    }
+    if (isMoving(s))
+    {
+        return removePointer(s);
     }
     return s;
 }
@@ -89,7 +102,7 @@ void defineType(std::ostream& out, std::string baseName, std::string retType,
     for (auto field : fieldList)
     {
         auto name = split(field, ' ')[1];
-        if (isPointer(split(field, ' ')[0]))
+        if (isPointer(split(field, ' ')[0]) || isMoving(split(field, ' ')[0]))
         {
             out << "        " << name << " = std::move(" << name << "_);\n";
         }
@@ -149,7 +162,8 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     out << "#define " + uppercase(baseName) + "_HPP_INCLUDED\n";
     out << "#include \"token.hpp\"\n";
     out << "#include \"loxobject.hpp\"\n";
-    out << "#include <memory>\n\n";
+    out << "#include <memory>\n";
+    out << "#include <vector>\n\n";
     out << "using " + baseName + "RetType = " << retType << ";\n\n";
     std::vector<std::string> classNames;
     for (auto& s : types)
@@ -189,6 +203,7 @@ int main()
     }
     createAst(out, "Expr", "LoxObject", types);
     types.clear();
+    types.push_back("Block      | std::vector<std::unique_ptr<Stmt>>' statements");
     types.push_back("Expression | Expr* expr");
     types.push_back("Print      | Expr* expr");
     types.push_back("Variable   | Token name, Expr* init");

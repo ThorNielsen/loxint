@@ -5,6 +5,7 @@
 #include "token.hpp"
 #include "loxobject.hpp"
 #include <memory>
+#include <vector>
 
 using ExprRetType = LoxObject;
 

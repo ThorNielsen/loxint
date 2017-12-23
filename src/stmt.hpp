@@ -5,9 +5,11 @@
 #include "token.hpp"
 #include "loxobject.hpp"
 #include <memory>
+#include <vector>
 
 using StmtRetType = void;
 
+class BlockStmt;
 class ExpressionStmt;
 class PrintStmt;
 class VariableStmt;
@@ -15,6 +17,7 @@ class VariableStmt;
 class StmtVisitor
 {
 public:
+    virtual StmtRetType visitBlockStmt(BlockStmt&) = 0;
     virtual StmtRetType visitExpressionStmt(ExpressionStmt&) = 0;
     virtual StmtRetType visitPrintStmt(PrintStmt&) = 0;
     virtual StmtRetType visitVariableStmt(VariableStmt&) = 0;
@@ -24,6 +27,22 @@ class Stmt
 {
 public:
     virtual void accept(StmtVisitor&) = 0;
+};
+
+class BlockStmt : public Stmt
+{
+public:
+    BlockStmt(std::vector<std::unique_ptr<Stmt>>&& statements_)
+    {
+        statements = std::move(statements_);
+    }
+
+    StmtRetType accept(StmtVisitor& v) override
+    {
+        v.visitBlockStmt(*this);
+    }
+
+    std::vector<std::unique_ptr<Stmt>> statements;
 };
 
 class ExpressionStmt : public Stmt

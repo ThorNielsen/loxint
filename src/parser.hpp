@@ -64,11 +64,26 @@ private:
 
     PStmt statement()
     {
+        if (match({TokenType::LeftBrace}))
+        {
+            return block();
+        }
         if (match({TokenType::Print}))
         {
             return printStatement();
         }
         return expressionStatement();
+    }
+
+    PStmt block()
+    {
+        std::vector<PStmt> statements;
+        while (!isCurrentEqual(TokenType::RightBrace) && !atEnd())
+        {
+            statements.push_back(declaration());
+        }
+        consume(TokenType::RightBrace, "Expected '}' to end block.");
+        return PStmt(new BlockStmt(std::move(statements)));
     }
 
     PStmt printStatement()

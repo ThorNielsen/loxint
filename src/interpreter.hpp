@@ -25,6 +25,18 @@ public:
         }
     }
 
+    StmtRetType visitBlockStmt(BlockStmt& bs) override
+    {
+        ScopeGuard newScope(m_env);
+        for (auto& statement : bs.statements)
+        {
+            if (statement)
+            {
+                statement->accept(*this);
+            }
+        }
+    }
+
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
     {
         es.expr->accept(*this);

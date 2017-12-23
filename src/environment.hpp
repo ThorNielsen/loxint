@@ -9,28 +9,55 @@
 class Environment
 {
 public:
-    Environment() {}
+    Environment()
+    {
+        pushScope();
+    }
     ~Environment() {}
 
     bool exists(std::string name)
     {
-        return m_vars.find(name) == m_vars.end();
+        for (auto vars = m_vars.rbegin(); vars != m_vars.rend(); ++vars)
+        {
+            if (vars->find(name) != vars->end()) return true;
+        }
+        return false;
     }
     LoxObject& getVar(std::string name)
     {
-        auto var = m_vars.find(name);
-        if (var == m_vars.end())
+        for (auto vars = m_vars.rbegin(); vars != m_vars.rend(); ++vars)
         {
-            throw LoxError("'" + name + "' was not declared.");
+            auto var = vars->find(name);
+            if (var != vars->end())
+            {
+                return var->second;
+            }
         }
-        return var->second;
+        throw LoxError("'" + name + "' was not declared.");
     }
     void createVar(std::string name, LoxObject lo)
     {
-        m_vars[name] = lo;
+        m_vars.back()[name] = lo;
+    }
+    void pushScope()
+    {
+        m_vars.push_back({});
+    }
+    void popScope()
+    {
+        m_vars.pop_back();
     }
 private:
-    std::map<std::string, LoxObject> m_vars;
+    std::vector<std::map<std::string, LoxObject>> m_vars;
+};
+
+class ScopeGuard
+{
+public:
+    ScopeGuard(Environment& env) : m_env(env) { env.pushScope(); }
+    ~ScopeGuard() { m_env.popScope(); }
+private:
+    Environment& m_env;
 };
 
 #endif // ENVIRONMENT_HPP_INCLUDED

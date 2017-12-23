@@ -69,6 +69,7 @@
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/parser.hpp" />
+		<Unit filename="src/stmt.hpp" />
 		<Unit filename="src/token.cpp" />
 		<Unit filename="src/token.hpp" />
 		<Extensions>

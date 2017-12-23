@@ -13,9 +13,9 @@ void run(Interpreter& interpreter, std::string source)
 {
     try
     {
-        Lexer lex(source);
+        Lexer lex;
         Parser p;
-        auto ast = p.parse(lex.scanTokens());
+        auto ast = p.parse(lex.scanTokens(source));
         std::cout << (std::string)interpreter.interpret(ast.get()) << std::endl;
     }
     catch (LoxError& err)

@@ -8,10 +8,12 @@
 class Lexer
 {
 public:
-    Lexer(std::string source)
-        : m_src{source}, m_pos{0}, m_start{0}, m_line{0} {}
-    std::vector<Token> scanTokens()
+    std::vector<Token> scanTokens(std::string source)
     {
+        m_src = source;
+        m_pos = 0;
+        m_start = 0;
+        m_line = 0;
         while (!atEnd())
         {
             scanToken();

@@ -32,6 +32,15 @@ bool isPointer(const std::string& s)
     return s.size() && s[s.size()-1] == '*';
 }
 
+std::string uppercase(std::string s)
+{
+    for (auto& c : s)
+    {
+        c = std::toupper(c);
+    }
+    return s;
+}
+
 std::string removePointer(const std::string& s)
 {
     return s.substr(0, s.size()-1);
@@ -135,12 +144,12 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
 {
     out << "// Warning: This code is auto-generated and may be changed at any\n"
         << "// time by a script. Edits will be reverted.\n";
-    out << "#ifndef EXPR_HPP_INCLUDED\n";
-    out << "#define EXPR_HPP_INCLUDED\n";
+    out << "#ifndef " + uppercase(baseName) + "_HPP_INCLUDED\n";
+    out << "#define " + uppercase(baseName) + "_HPP_INCLUDED\n";
     out << "#include \"token.hpp\"\n";
     out << "#include \"loxobject.hpp\"\n";
     out << "#include <memory>\n\n";
-    out << "using ExprRetType = " << retType << ";\n\n";
+    out << "using " + baseName + "RetType = " << retType << ";\n\n";
     std::vector<std::string> classNames;
     for (auto& s : types)
     {
@@ -148,7 +157,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     }
     declareClasses(out, classNames);
     defineVisitor(out, baseName, retType, classNames);
-    out << "class Expr\n{\n";
+    out << "class " + baseName + "\n{\n";
     out << "public:\n";
     out << "    virtual " << retType << " accept("
         << baseName << "Visitor&) = 0;";
@@ -159,7 +168,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
         std::string fields = trim(split(s, ':')[1]);
         defineType(out, baseName, retType, className, fields);
     }
-    out << "#endif // EXPR_HPP_INCLUDED\n";
+    out << "#endif // " + uppercase(baseName) + "_HPP_INCLUDED\n";
 }
 
 int main()
@@ -176,4 +185,15 @@ int main()
         return 1;
     }
     createAst(out, "Expr", "LoxObject", types);
+    types.clear();
+    types.push_back("Expression : Expr* expr");
+    types.push_back("Print      : Expr* expr");
+    out.close();
+    out.open("../src/stmt.hpp", std::ios::trunc);
+    if (!out.is_open())
+    {
+        std::cerr << "Could not open file for writing!\n";
+        return 1;
+    }
+    createAst(out, "Stmt", "LoxObject", types);
 }

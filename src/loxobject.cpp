@@ -80,8 +80,8 @@ LoxObject::operator bool() const
 {
     switch (type)
     {
-    case LoxType::Nil: return false;
-    case LoxType::Bool: return boolean;
+    case LoxType::Nil:    return false;
+    case LoxType::Bool:   return boolean;
     case LoxType::Number: return number != 0.;
     case LoxType::String: return string != "";
     }

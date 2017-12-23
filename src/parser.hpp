@@ -20,7 +20,7 @@ public:
         std::vector<std::unique_ptr<Stmt>> statements;
         while (!atEnd())
         {
-            statements.emplace_back(statement());
+            statements.emplace_back(declaration());
         }
         return statements;
     }
@@ -28,6 +28,37 @@ public:
 private:
     using PExpr = std::unique_ptr<Expr>;
     using PStmt = std::unique_ptr<Stmt>;
+
+    PStmt declaration()
+    {
+        try
+        {
+            if (match({TokenType::Var}))
+            {
+                return varDeclaration();
+            }
+            return statement();
+        }
+        catch (LoxError err)
+        {
+            synchronise();
+            return nullptr;
+        }
+    }
+
+    PStmt varDeclaration()
+    {
+        Token name = consume(TokenType::Identifier, "Expected variable name.");
+
+        PExpr init = PExpr(new LiteralExpr(LoxObject()));
+        if (match({TokenType::Equal}))
+        {
+            init = expression();
+        }
+        consume(TokenType::Semicolon,
+                "Expected ';' after variable declaration.");
+        return PStmt(new VarStmt(name, std::move(init)));
+    }
 
     PStmt statement()
     {
@@ -120,6 +151,10 @@ private:
         {
             return PExpr(new LiteralExpr(previous()));
         }
+        if (match({TokenType::Identifier}))
+        {
+            return PExpr(new VariableExpr(previous()));
+        }
         if (match({TokenType::LeftParen}))
         {
             PExpr expr = expression();
@@ -172,6 +207,8 @@ private:
         error(peek().line, "Parsing error: " + msg);
         throw LoxError("Parsing error.");
     }
+
+    void synchronise();
 
     std::vector<Token> m_tokens;
     size_t m_ctok;

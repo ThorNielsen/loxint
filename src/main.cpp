@@ -9,7 +9,7 @@
 #include "parser.hpp"
 #include "interpreter.hpp"
 
-void run(Interpreter& interpreter, std::string source)
+bool run(Interpreter& interpreter, std::string source)
 {
     try
     {
@@ -17,10 +17,12 @@ void run(Interpreter& interpreter, std::string source)
         Parser p;
         auto stmts = p.parse(lex.scanTokens(source));
         interpreter.interpret(stmts);
+        return true;
     }
     catch (LoxError& err)
     {
         std::cerr << "Error: " << err.what() << "\n";
+        return false;
     }
 }
 
@@ -36,7 +38,7 @@ void runPrompt()
     }
 }
 
-void runFile(std::string path)
+bool runFile(std::string path)
 {
     std::ifstream in(path);
     if (!in.is_open())
@@ -51,7 +53,7 @@ void runFile(std::string path)
     code.resize(end - start);
     in.read(&code[0], end - start);
     Interpreter interpreter;
-    run(interpreter, code);
+    return run(interpreter, code);
 }
 
 int main(int argc, char* argv[])
@@ -77,14 +79,16 @@ int main(int argc, char* argv[])
             ++loc;
         }
         std::cout << "Usage: " + execName.substr(loc) + " [file]" << std::endl;
+        return 1;
     }
     else if (argc == 2)
     {
-        runFile(argv[1]);
+        return runFile(argv[1]) ? 0 : 'm'^'a'^'g'^'i'^'c';
     }
     else
     {
         runPrompt();
+        return 0;
     }
 }
 

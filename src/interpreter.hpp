@@ -4,6 +4,7 @@
 #include "expr.hpp"
 #include "loxobject.hpp"
 #include "stmt.hpp"
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -17,7 +18,10 @@ public:
     {
         for (auto& statement : statements)
         {
-            statement->accept(*this);
+            if (statement)
+            {
+                statement->accept(*this);
+            }
         }
     }
 
@@ -29,6 +33,10 @@ public:
     {
         std::cout << (std::string)ps.expr->accept(*this) << "\n";
     }
+    StmtRetType visitVarStmt(VarStmt& vs) override
+    {
+        m_vars[vs.name.lexeme] = vs.init->accept(*this);
+    }
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
@@ -39,6 +47,17 @@ public:
         return lit.value;
     }
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
+    ExprRetType visitVariableExpr(VariableExpr& ve) override
+    {
+        auto var = m_vars.find(ve.name.lexeme);
+        if (var == m_vars.end())
+        {
+            throw LoxError("'" + ve.name.lexeme + "' was not declared.");
+        }
+        return var->second;
+    }
+private:
+    std::map<std::string, LoxObject> m_vars;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

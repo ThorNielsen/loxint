@@ -10,12 +10,14 @@ using StmtRetType = void;
 
 class ExpressionStmt;
 class PrintStmt;
+class VarStmt;
 
 class StmtVisitor
 {
 public:
     virtual void visitExpressionStmt(ExpressionStmt&) = 0;
     virtual void visitPrintStmt(PrintStmt&) = 0;
+    virtual void visitVarStmt(VarStmt&) = 0;
 };
 
 class Stmt
@@ -34,7 +36,7 @@ public:
 
     void accept(StmtVisitor& v) override
     {
-        return v.visitExpressionStmt(*this);
+        v.visitExpressionStmt(*this);
     }
 
     std::unique_ptr<Expr> expr;
@@ -50,10 +52,28 @@ public:
 
     void accept(StmtVisitor& v) override
     {
-        return v.visitPrintStmt(*this);
+        v.visitPrintStmt(*this);
     }
 
     std::unique_ptr<Expr> expr;
+};
+
+class VarStmt : public Stmt
+{
+public:
+    VarStmt(Token name_, std::unique_ptr<Expr>&& init_)
+    {
+        name = name_;
+        init = std::move(init_);
+    }
+
+    void accept(StmtVisitor& v) override
+    {
+        v.visitVarStmt(*this);
+    }
+
+    Token name;
+    std::unique_ptr<Expr> init;
 };
 
 #endif // STMT_HPP_INCLUDED

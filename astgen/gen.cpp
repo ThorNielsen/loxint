@@ -103,7 +103,8 @@ void defineType(std::ostream& out, std::string baseName, std::string retType,
     out << "    " << retType << " accept("
         << baseName << "Visitor& v) override\n";
     out << "    {\n";
-    out << "        return v.visit" << className << "(*this);\n";
+    out << "        " << (retType != "void" ? "return " : "")
+        << "v.visit" << className << "(*this);\n";
     out << "    }\n\n";
 
     for (auto field : fieldList)
@@ -153,7 +154,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     std::vector<std::string> classNames;
     for (auto& s : types)
     {
-        classNames.push_back(trim(split(s, ':')[0]) + baseName);
+        classNames.push_back(trim(split(s, '|')[0]) + baseName);
     }
     declareClasses(out, classNames);
     defineVisitor(out, baseName, retType, classNames);
@@ -164,8 +165,8 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     out << "\n};\n\n";
     for (auto& s : types)
     {
-        std::string className = trim(split(s, ':')[0]) + baseName;
-        std::string fields = trim(split(s, ':')[1]);
+        std::string className = trim(split(s, '|')[0]) + baseName;
+        std::string fields = trim(split(s, '|')[1]);
         defineType(out, baseName, retType, className, fields);
     }
     out << "#endif // " + uppercase(baseName) + "_HPP_INCLUDED\n";
@@ -174,10 +175,11 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
 int main()
 {
     std::vector<std::string> types;
-    types.push_back("Binary   : Expr* left, Token oper, Expr* right");
-    types.push_back("Grouping : Expr* expr");
-    types.push_back("Literal  : LoxObject value");
-    types.push_back("Unary    : Token oper, Expr* right");
+    types.push_back("Binary   | Expr* left, Token oper, Expr* right");
+    types.push_back("Grouping | Expr* expr");
+    types.push_back("Literal  | LoxObject value");
+    types.push_back("Unary    | Token oper, Expr* right");
+    types.push_back("Variable | Token name");
     std::ofstream out("../src/expr.hpp", std::ios::trunc);
     if (!out.is_open())
     {
@@ -186,8 +188,9 @@ int main()
     }
     createAst(out, "Expr", "LoxObject", types);
     types.clear();
-    types.push_back("Expression : Expr* expr");
-    types.push_back("Print      : Expr* expr");
+    types.push_back("Expression | Expr* expr");
+    types.push_back("Print      | Expr* expr");
+    types.push_back("Var        | Token name, Expr* init");
     out.close();
     out.open("../src/stmt.hpp", std::ios::trunc);
     if (!out.is_open())

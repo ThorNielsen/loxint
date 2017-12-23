@@ -12,6 +12,7 @@ class BinaryExpr;
 class GroupingExpr;
 class LiteralExpr;
 class UnaryExpr;
+class VariableExpr;
 
 class ExprVisitor
 {
@@ -20,6 +21,7 @@ public:
     virtual LoxObject visitGroupingExpr(GroupingExpr&) = 0;
     virtual LoxObject visitLiteralExpr(LiteralExpr&) = 0;
     virtual LoxObject visitUnaryExpr(UnaryExpr&) = 0;
+    virtual LoxObject visitVariableExpr(VariableExpr&) = 0;
 };
 
 class Expr
@@ -96,6 +98,22 @@ public:
 
     Token oper;
     std::unique_ptr<Expr> right;
+};
+
+class VariableExpr : public Expr
+{
+public:
+    VariableExpr(Token name_)
+    {
+        name = name_;
+    }
+
+    LoxObject accept(ExprVisitor& v) override
+    {
+        return v.visitVariableExpr(*this);
+    }
+
+    Token name;
 };
 
 #endif // EXPR_HPP_INCLUDED

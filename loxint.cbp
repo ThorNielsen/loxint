@@ -59,6 +59,7 @@
 			<Add directory="src" />
 		</Compiler>
 		<Unit filename="src/astprinter.hpp" />
+		<Unit filename="src/environment.hpp" />
 		<Unit filename="src/error.hpp" />
 		<Unit filename="src/expr.hpp" />
 		<Unit filename="src/interpreter.cpp" />

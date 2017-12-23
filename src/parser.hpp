@@ -43,6 +43,7 @@ private:
         catch (LoxError err)
         {
             synchronise();
+            std::cerr << "Parsing error: " << err.what() << "\n";
             return nullptr;
         }
     }

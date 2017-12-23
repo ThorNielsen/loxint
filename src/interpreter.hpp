@@ -1,10 +1,10 @@
 #ifndef INTERPRETER_HPP_INCLUDED
 #define INTERPRETER_HPP_INCLUDED
 
+#include "environment.hpp"
 #include "expr.hpp"
 #include "loxobject.hpp"
 #include "stmt.hpp"
-#include <map>
 #include <memory>
 #include <vector>
 
@@ -35,11 +35,11 @@ public:
     }
     StmtRetType visitVariableStmt(VariableStmt& vs) override
     {
-        m_vars[vs.name.lexeme] = vs.init->accept(*this);
+        m_env.createVar(vs.name.lexeme, vs.init->accept(*this));
     }
     ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
     {
-        return (getVar(as.name.lexeme) = as.val->accept(*this));
+        return m_env.getVar(as.name.lexeme) = as.val->accept(*this);
     }
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
@@ -53,20 +53,10 @@ public:
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
-        return getVar(ve.name.lexeme);
+        return m_env.getVar(ve.name.lexeme);
     }
 private:
-    LoxObject& getVar(std::string name)
-    {
-        auto var = m_vars.find(name);
-        if (var == m_vars.end())
-        {
-            throw LoxError("'" + name + "' was not declared.");
-        }
-        return var->second;
-    }
-
-    std::map<std::string, LoxObject> m_vars;
+    Environment m_env;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

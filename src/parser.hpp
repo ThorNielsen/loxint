@@ -1,8 +1,9 @@
 #ifndef PARSER_HPP_INCLUDED
 #define PARSER_HPP_INCLUDED
 
-#include "expr.hpp"
 #include "error.hpp"
+#include "expr.hpp"
+#include "stmt.hpp"
 #include <vector>
 
 
@@ -12,15 +13,45 @@ public:
     Parser();
     ~Parser();
 
-    std::unique_ptr<Expr> parse(std::vector<Token> tokens)
+    std::vector<std::unique_ptr<Stmt>> parse(std::vector<Token> tokens)
     {
         m_tokens = tokens;
         m_ctok = 0;
-        return expression();
+        std::vector<std::unique_ptr<Stmt>> statements;
+        while (!atEnd())
+        {
+            statements.emplace_back(statement());
+        }
+        return statements;
     }
 
 private:
     using PExpr = std::unique_ptr<Expr>;
+    using PStmt = std::unique_ptr<Stmt>;
+
+    PStmt statement()
+    {
+        if (match({TokenType::Print}))
+        {
+            return printStatement();
+        }
+        return expressionStatement();
+    }
+
+    PStmt printStatement()
+    {
+        PStmt stmt = PStmt(new PrintStmt(expression()));
+        consume(TokenType::Semicolon, "Expected ';' after expression.");
+        return stmt;
+    }
+
+    PStmt expressionStatement()
+    {
+        PStmt stmt = PStmt(new ExpressionStmt(expression()));
+        consume(TokenType::Semicolon, "Expected ';' after expression.");
+        return stmt;
+    }
+
     PExpr expression()
     {
         return equality();
@@ -32,7 +63,7 @@ private:
         {
             Token oper = previous();
             PExpr right = comparison();
-            left = PExpr(new Binary(std::move(left), oper, std::move(right)));
+            left = PExpr(new BinaryExpr(std::move(left), oper, std::move(right)));
         }
         return left;
     }
@@ -44,7 +75,7 @@ private:
         {
             Token oper = previous();
             PExpr right = addition();
-            left = PExpr(new Binary(std::move(left), oper, std::move(right)));
+            left = PExpr(new BinaryExpr(std::move(left), oper, std::move(right)));
         }
         return left;
     }
@@ -55,7 +86,7 @@ private:
         {
             Token oper = previous();
             PExpr right = multiplication();
-            left = PExpr(new Binary(std::move(left), oper, std::move(right)));
+            left = PExpr(new BinaryExpr(std::move(left), oper, std::move(right)));
         }
         return left;
     }
@@ -66,7 +97,7 @@ private:
         {
             Token oper = previous();
             PExpr right = unary();
-            left = PExpr(new Binary(std::move(left), oper, std::move(right)));
+            left = PExpr(new BinaryExpr(std::move(left), oper, std::move(right)));
         }
         return left;
     }
@@ -77,7 +108,7 @@ private:
         {
             Token oper = previous();
             PExpr right = unary();
-            return PExpr(new Unary(oper, std::move(right)));
+            return PExpr(new UnaryExpr(oper, std::move(right)));
         }
         return primary();
     }
@@ -87,13 +118,13 @@ private:
                    TokenType::Nil, TokenType::Number,
                    TokenType::String}))
         {
-            return PExpr(new Literal(previous()));
+            return PExpr(new LiteralExpr(previous()));
         }
         if (match({TokenType::LeftParen}))
         {
             PExpr expr = expression();
             consume(TokenType::RightParen, "No matching end paren.");
-            return PExpr(new Grouping(std::move(expr)));
+            return PExpr(new GroupingExpr(std::move(expr)));
         }
         throw std::runtime_error("Couldn't find a primary expression.");
     }

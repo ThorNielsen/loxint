@@ -103,7 +103,7 @@ void defineType(std::ostream& out, std::string baseName, std::string retType,
     out << "    " << retType << " accept("
         << baseName << "Visitor& v) override\n";
     out << "    {\n";
-    out << "        return v.visit" << className << baseName << "(*this);\n";
+    out << "        return v.visit" << className << "(*this);\n";
     out << "    }\n\n";
 
     for (auto field : fieldList)
@@ -133,7 +133,7 @@ void defineVisitor(std::ostream& out, std::string baseName, std::string retType,
     out << "public:\n";
     for (auto& cName : classNames)
     {
-        out << "    virtual " << retType << " visit" << cName << baseName
+        out << "    virtual " << retType << " visit" << cName
             << "(" << cName << "&) = 0;\n";
     }
     out << "};\n\n";
@@ -153,7 +153,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     std::vector<std::string> classNames;
     for (auto& s : types)
     {
-        classNames.push_back(trim(split(s, ':')[0]));
+        classNames.push_back(trim(split(s, ':')[0]) + baseName);
     }
     declareClasses(out, classNames);
     defineVisitor(out, baseName, retType, classNames);
@@ -164,7 +164,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     out << "\n};\n\n";
     for (auto& s : types)
     {
-        std::string className = trim(split(s, ':')[0]);
+        std::string className = trim(split(s, ':')[0]) + baseName;
         std::string fields = trim(split(s, ':')[1]);
         defineType(out, baseName, retType, className, fields);
     }
@@ -195,5 +195,5 @@ int main()
         std::cerr << "Could not open file for writing!\n";
         return 1;
     }
-    createAst(out, "Stmt", "LoxObject", types);
+    createAst(out, "Stmt", "void", types);
 }

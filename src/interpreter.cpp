@@ -3,7 +3,7 @@
 
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 
-ExprRetType Interpreter::visitBinaryExpr(Binary& bin)
+ExprRetType Interpreter::visitBinaryExpr(BinaryExpr& bin)
 {
     auto l = bin.left->accept(*this);
     auto r = bin.right->accept(*this);
@@ -24,7 +24,7 @@ ExprRetType Interpreter::visitBinaryExpr(Binary& bin)
     }
 }
 
-ExprRetType Interpreter::visitUnaryExpr(Unary& un)
+ExprRetType Interpreter::visitUnaryExpr(UnaryExpr& un)
 {
     auto eval = un.right->accept(*this);
     switch (un.oper.type)

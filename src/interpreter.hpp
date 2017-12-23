@@ -3,28 +3,42 @@
 
 #include "expr.hpp"
 #include "loxobject.hpp"
+#include "stmt.hpp"
+#include <memory>
+#include <vector>
 
-class Interpreter : public ExprVisitor
+class Interpreter : public ExprVisitor, public StmtVisitor
 {
 public:
     Interpreter() {}
     ~Interpreter() {}
 
-    LoxObject interpret(Expr* expr)
+    void interpret(const std::vector<std::unique_ptr<Stmt>>& statements)
     {
-        return expr->accept(*this);
+        for (auto& statement : statements)
+        {
+            statement->accept(*this);
+        }
     }
 
-    ExprRetType visitBinaryExpr(Binary&) override;
-    ExprRetType visitGroupingExpr(Grouping& grp) override
+    StmtRetType visitExpressionStmt(ExpressionStmt& es) override
+    {
+        es.expr->accept(*this);
+    }
+    StmtRetType visitPrintStmt(PrintStmt& ps) override
+    {
+        std::cout << (std::string)ps.expr->accept(*this) << "\n";
+    }
+    ExprRetType visitBinaryExpr(BinaryExpr&) override;
+    ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
         return grp.expr->accept(*this);
     }
-    ExprRetType visitLiteralExpr(Literal& lit) override
+    ExprRetType visitLiteralExpr(LiteralExpr& lit) override
     {
         return lit.value;
     }
-    ExprRetType visitUnaryExpr(Unary&) override;
+    ExprRetType visitUnaryExpr(UnaryExpr&) override;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

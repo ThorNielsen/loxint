@@ -6,33 +6,33 @@
 #include "loxobject.hpp"
 #include <memory>
 
-using StmtRetType = LoxObject;
+using StmtRetType = void;
 
-class Expression;
-class Print;
+class ExpressionStmt;
+class PrintStmt;
 
 class StmtVisitor
 {
 public:
-    virtual LoxObject visitExpressionStmt(Expression&) = 0;
-    virtual LoxObject visitPrintStmt(Print&) = 0;
+    virtual void visitExpressionStmt(ExpressionStmt&) = 0;
+    virtual void visitPrintStmt(PrintStmt&) = 0;
 };
 
 class Stmt
 {
 public:
-    virtual LoxObject accept(StmtVisitor&) = 0;
+    virtual void accept(StmtVisitor&) = 0;
 };
 
-class Expression : public Stmt
+class ExpressionStmt : public Stmt
 {
 public:
-    Expression(std::unique_ptr<Expr>&& expr_)
+    ExpressionStmt(std::unique_ptr<Expr>&& expr_)
     {
         expr = std::move(expr_);
     }
 
-    LoxObject accept(StmtVisitor& v) override
+    void accept(StmtVisitor& v) override
     {
         return v.visitExpressionStmt(*this);
     }
@@ -40,15 +40,15 @@ public:
     std::unique_ptr<Expr> expr;
 };
 
-class Print : public Stmt
+class PrintStmt : public Stmt
 {
 public:
-    Print(std::unique_ptr<Expr>&& expr_)
+    PrintStmt(std::unique_ptr<Expr>&& expr_)
     {
         expr = std::move(expr_);
     }
 
-    LoxObject accept(StmtVisitor& v) override
+    void accept(StmtVisitor& v) override
     {
         return v.visitPrintStmt(*this);
     }

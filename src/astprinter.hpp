@@ -9,19 +9,19 @@ public:
     ASTPrinter() {}
     ~ASTPrinter() {}
 
-    ExprRetType visitBinaryExpr(Binary& bin) override
+    ExprRetType visitBinaryExpr(BinaryExpr& bin) override
     {
         return parenthesize(bin.oper.lexeme, {bin.left.get(), bin.right.get()});
     }
-    ExprRetType visitGroupingExpr(Grouping& grp) override
+    ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
         return parenthesize("group", {grp.expr.get()});
     }
-    ExprRetType visitLiteralExpr(Literal& lit)
+    ExprRetType visitLiteralExpr(LiteralExpr& lit)
     {
         return LoxObject((std::string)lit.value);
     }
-    ExprRetType visitUnaryExpr(Unary& un)
+    ExprRetType visitUnaryExpr(UnaryExpr& un)
     {
         return parenthesize(un.oper.lexeme, {un.right.get()});
     }

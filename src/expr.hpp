@@ -8,18 +8,18 @@
 
 using ExprRetType = LoxObject;
 
-class Binary;
-class Grouping;
-class Literal;
-class Unary;
+class BinaryExpr;
+class GroupingExpr;
+class LiteralExpr;
+class UnaryExpr;
 
 class ExprVisitor
 {
 public:
-    virtual LoxObject visitBinaryExpr(Binary&) = 0;
-    virtual LoxObject visitGroupingExpr(Grouping&) = 0;
-    virtual LoxObject visitLiteralExpr(Literal&) = 0;
-    virtual LoxObject visitUnaryExpr(Unary&) = 0;
+    virtual LoxObject visitBinaryExpr(BinaryExpr&) = 0;
+    virtual LoxObject visitGroupingExpr(GroupingExpr&) = 0;
+    virtual LoxObject visitLiteralExpr(LiteralExpr&) = 0;
+    virtual LoxObject visitUnaryExpr(UnaryExpr&) = 0;
 };
 
 class Expr
@@ -28,10 +28,10 @@ public:
     virtual LoxObject accept(ExprVisitor&) = 0;
 };
 
-class Binary : public Expr
+class BinaryExpr : public Expr
 {
 public:
-    Binary(std::unique_ptr<Expr>&& left_, Token oper_, std::unique_ptr<Expr>&& right_)
+    BinaryExpr(std::unique_ptr<Expr>&& left_, Token oper_, std::unique_ptr<Expr>&& right_)
     {
         left = std::move(left_);
         oper = oper_;
@@ -48,10 +48,10 @@ public:
     std::unique_ptr<Expr> right;
 };
 
-class Grouping : public Expr
+class GroupingExpr : public Expr
 {
 public:
-    Grouping(std::unique_ptr<Expr>&& expr_)
+    GroupingExpr(std::unique_ptr<Expr>&& expr_)
     {
         expr = std::move(expr_);
     }
@@ -64,10 +64,10 @@ public:
     std::unique_ptr<Expr> expr;
 };
 
-class Literal : public Expr
+class LiteralExpr : public Expr
 {
 public:
-    Literal(LoxObject value_)
+    LiteralExpr(LoxObject value_)
     {
         value = value_;
     }
@@ -80,10 +80,10 @@ public:
     LoxObject value;
 };
 
-class Unary : public Expr
+class UnaryExpr : public Expr
 {
 public:
-    Unary(Token oper_, std::unique_ptr<Expr>&& right_)
+    UnaryExpr(Token oper_, std::unique_ptr<Expr>&& right_)
     {
         oper = oper_;
         right = std::move(right_);

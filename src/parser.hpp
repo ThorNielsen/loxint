@@ -4,6 +4,7 @@
 #include "error.hpp"
 #include "expr.hpp"
 #include "stmt.hpp"
+#include "type.hpp"
 #include <vector>
 
 
@@ -57,7 +58,7 @@ private:
         }
         consume(TokenType::Semicolon,
                 "Expected ';' after variable declaration.");
-        return PStmt(new VarStmt(name, std::move(init)));
+        return PStmt(new VariableStmt(name, std::move(init)));
     }
 
     PStmt statement()
@@ -85,7 +86,23 @@ private:
 
     PExpr expression()
     {
-        return equality();
+        return assignment();
+    }
+    PExpr assignment()
+    {
+        PExpr left = equality();
+        if (match({TokenType::Equal}))
+        {
+            PExpr val = assignment();
+            TypeIdentifier ti;
+            if (ti.identify(left.get()) == Type::VarExpr)
+            {
+                Token name = static_cast<VariableExpr*>(left.get())->name;
+                return PExpr(new AssignmentExpr(name, std::move(val)));
+            }
+            throw LoxError("Invalid assignment target.");
+        }
+        return left;
     }
     PExpr equality()
     {

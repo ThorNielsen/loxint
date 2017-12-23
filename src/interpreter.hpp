@@ -33,9 +33,13 @@ public:
     {
         std::cout << (std::string)ps.expr->accept(*this) << "\n";
     }
-    StmtRetType visitVarStmt(VarStmt& vs) override
+    StmtRetType visitVariableStmt(VariableStmt& vs) override
     {
         m_vars[vs.name.lexeme] = vs.init->accept(*this);
+    }
+    ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
+    {
+        return (getVar(as.name.lexeme) = as.val->accept(*this));
     }
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
@@ -49,14 +53,19 @@ public:
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
-        auto var = m_vars.find(ve.name.lexeme);
+        return getVar(ve.name.lexeme);
+    }
+private:
+    LoxObject& getVar(std::string name)
+    {
+        auto var = m_vars.find(name);
         if (var == m_vars.end())
         {
-            throw LoxError("'" + ve.name.lexeme + "' was not declared.");
+            throw LoxError("'" + name + "' was not declared.");
         }
         return var->second;
     }
-private:
+
     std::map<std::string, LoxObject> m_vars;
 };
 

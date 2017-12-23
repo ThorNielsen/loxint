@@ -10,14 +10,14 @@ using StmtRetType = void;
 
 class ExpressionStmt;
 class PrintStmt;
-class VarStmt;
+class VariableStmt;
 
 class StmtVisitor
 {
 public:
-    virtual void visitExpressionStmt(ExpressionStmt&) = 0;
-    virtual void visitPrintStmt(PrintStmt&) = 0;
-    virtual void visitVarStmt(VarStmt&) = 0;
+    virtual StmtRetType visitExpressionStmt(ExpressionStmt&) = 0;
+    virtual StmtRetType visitPrintStmt(PrintStmt&) = 0;
+    virtual StmtRetType visitVariableStmt(VariableStmt&) = 0;
 };
 
 class Stmt
@@ -34,7 +34,7 @@ public:
         expr = std::move(expr_);
     }
 
-    void accept(StmtVisitor& v) override
+    StmtRetType accept(StmtVisitor& v) override
     {
         v.visitExpressionStmt(*this);
     }
@@ -50,7 +50,7 @@ public:
         expr = std::move(expr_);
     }
 
-    void accept(StmtVisitor& v) override
+    StmtRetType accept(StmtVisitor& v) override
     {
         v.visitPrintStmt(*this);
     }
@@ -58,18 +58,18 @@ public:
     std::unique_ptr<Expr> expr;
 };
 
-class VarStmt : public Stmt
+class VariableStmt : public Stmt
 {
 public:
-    VarStmt(Token name_, std::unique_ptr<Expr>&& init_)
+    VariableStmt(Token name_, std::unique_ptr<Expr>&& init_)
     {
         name = name_;
         init = std::move(init_);
     }
 
-    void accept(StmtVisitor& v) override
+    StmtRetType accept(StmtVisitor& v) override
     {
-        v.visitVarStmt(*this);
+        v.visitVariableStmt(*this);
     }
 
     Token name;

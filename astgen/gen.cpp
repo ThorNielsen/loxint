@@ -100,7 +100,7 @@ void defineType(std::ostream& out, std::string baseName, std::string retType,
     }
     out << "    }\n\n";
 
-    out << "    " << retType << " accept("
+    out << "    " << baseName << "RetType accept("
         << baseName << "Visitor& v) override\n";
     out << "    {\n";
     out << "        " << (retType != "void" ? "return " : "")
@@ -134,7 +134,7 @@ void defineVisitor(std::ostream& out, std::string baseName, std::string retType,
     out << "public:\n";
     for (auto& cName : classNames)
     {
-        out << "    virtual " << retType << " visit" << cName
+        out << "    virtual " << baseName << "RetType visit" << cName
             << "(" << cName << "&) = 0;\n";
     }
     out << "};\n\n";
@@ -175,11 +175,12 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
 int main()
 {
     std::vector<std::string> types;
-    types.push_back("Binary   | Expr* left, Token oper, Expr* right");
-    types.push_back("Grouping | Expr* expr");
-    types.push_back("Literal  | LoxObject value");
-    types.push_back("Unary    | Token oper, Expr* right");
-    types.push_back("Variable | Token name");
+    types.push_back("Assignment | Token name, Expr* val");
+    types.push_back("Binary     | Expr* left, Token oper, Expr* right");
+    types.push_back("Grouping   | Expr* expr");
+    types.push_back("Literal    | LoxObject value");
+    types.push_back("Unary      | Token oper, Expr* right");
+    types.push_back("Variable   | Token name");
     std::ofstream out("../src/expr.hpp", std::ios::trunc);
     if (!out.is_open())
     {
@@ -190,7 +191,7 @@ int main()
     types.clear();
     types.push_back("Expression | Expr* expr");
     types.push_back("Print      | Expr* expr");
-    types.push_back("Var        | Token name, Expr* init");
+    types.push_back("Variable   | Token name, Expr* init");
     out.close();
     out.open("../src/stmt.hpp", std::ios::trunc);
     if (!out.is_open())

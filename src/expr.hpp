@@ -8,6 +8,7 @@
 
 using ExprRetType = LoxObject;
 
+class AssignmentExpr;
 class BinaryExpr;
 class GroupingExpr;
 class LiteralExpr;
@@ -17,17 +18,36 @@ class VariableExpr;
 class ExprVisitor
 {
 public:
-    virtual LoxObject visitBinaryExpr(BinaryExpr&) = 0;
-    virtual LoxObject visitGroupingExpr(GroupingExpr&) = 0;
-    virtual LoxObject visitLiteralExpr(LiteralExpr&) = 0;
-    virtual LoxObject visitUnaryExpr(UnaryExpr&) = 0;
-    virtual LoxObject visitVariableExpr(VariableExpr&) = 0;
+    virtual ExprRetType visitAssignmentExpr(AssignmentExpr&) = 0;
+    virtual ExprRetType visitBinaryExpr(BinaryExpr&) = 0;
+    virtual ExprRetType visitGroupingExpr(GroupingExpr&) = 0;
+    virtual ExprRetType visitLiteralExpr(LiteralExpr&) = 0;
+    virtual ExprRetType visitUnaryExpr(UnaryExpr&) = 0;
+    virtual ExprRetType visitVariableExpr(VariableExpr&) = 0;
 };
 
 class Expr
 {
 public:
     virtual LoxObject accept(ExprVisitor&) = 0;
+};
+
+class AssignmentExpr : public Expr
+{
+public:
+    AssignmentExpr(Token name_, std::unique_ptr<Expr>&& val_)
+    {
+        name = name_;
+        val = std::move(val_);
+    }
+
+    ExprRetType accept(ExprVisitor& v) override
+    {
+        return v.visitAssignmentExpr(*this);
+    }
+
+    Token name;
+    std::unique_ptr<Expr> val;
 };
 
 class BinaryExpr : public Expr
@@ -40,7 +60,7 @@ public:
         right = std::move(right_);
     }
 
-    LoxObject accept(ExprVisitor& v) override
+    ExprRetType accept(ExprVisitor& v) override
     {
         return v.visitBinaryExpr(*this);
     }
@@ -58,7 +78,7 @@ public:
         expr = std::move(expr_);
     }
 
-    LoxObject accept(ExprVisitor& v) override
+    ExprRetType accept(ExprVisitor& v) override
     {
         return v.visitGroupingExpr(*this);
     }
@@ -74,7 +94,7 @@ public:
         value = value_;
     }
 
-    LoxObject accept(ExprVisitor& v) override
+    ExprRetType accept(ExprVisitor& v) override
     {
         return v.visitLiteralExpr(*this);
     }
@@ -91,7 +111,7 @@ public:
         right = std::move(right_);
     }
 
-    LoxObject accept(ExprVisitor& v) override
+    ExprRetType accept(ExprVisitor& v) override
     {
         return v.visitUnaryExpr(*this);
     }
@@ -108,7 +128,7 @@ public:
         name = name_;
     }
 
-    LoxObject accept(ExprVisitor& v) override
+    ExprRetType accept(ExprVisitor& v) override
     {
         return v.visitVariableExpr(*this);
     }

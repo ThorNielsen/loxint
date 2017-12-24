@@ -67,6 +67,14 @@ public:
     {
         m_env.createVar(vs.name.lexeme, vs.init->accept(*this));
     }
+    StmtRetType visitWhileStmt(WhileStmt& ws) override
+    {
+        while (ws.cond->accept(*this))
+        {
+            ws.statement->accept(*this);
+        }
+    }
+
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {

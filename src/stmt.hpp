@@ -14,6 +14,7 @@ class ExpressionStmt;
 class IfStmt;
 class PrintStmt;
 class VariableStmt;
+class WhileStmt;
 
 class StmtVisitor
 {
@@ -23,6 +24,7 @@ public:
     virtual StmtRetType visitIfStmt(IfStmt&) = 0;
     virtual StmtRetType visitPrintStmt(PrintStmt&) = 0;
     virtual StmtRetType visitVariableStmt(VariableStmt&) = 0;
+    virtual StmtRetType visitWhileStmt(WhileStmt&) = 0;
 };
 
 class Stmt
@@ -115,6 +117,24 @@ public:
 
     Token name;
     std::unique_ptr<Expr> init;
+};
+
+class WhileStmt : public Stmt
+{
+public:
+    WhileStmt(std::unique_ptr<Expr>&& cond_, std::unique_ptr<Stmt>&& statement_)
+    {
+        cond = std::move(cond_);
+        statement = std::move(statement_);
+    }
+
+    StmtRetType accept(StmtVisitor& v) override
+    {
+        v.visitWhileStmt(*this);
+    }
+
+    std::unique_ptr<Expr> cond;
+    std::unique_ptr<Stmt> statement;
 };
 
 #endif // STMT_HPP_INCLUDED

@@ -76,6 +76,10 @@ private:
         {
             return ifStatement();
         }
+        if (match({TokenType::While}))
+        {
+            return whileStatement();
+        }
         return expressionStatement();
     }
 
@@ -118,6 +122,15 @@ private:
         return PStmt(new IfStmt(std::move(cond),
                                 std::move(thenBranch),
                                 std::move(elseBranch)));
+    }
+
+    PStmt whileStatement()
+    {
+        consume(TokenType::LeftParen, "Expected '(' after while.");
+        PExpr cond = expression();
+        consume(TokenType::RightParen, "Expected ')' to end while-condition.");
+        PStmt stmt = statement();
+        return PStmt(new WhileStmt(std::move(cond), std::move(stmt)));
     }
 
     PExpr expression()

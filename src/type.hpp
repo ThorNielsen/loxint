@@ -7,7 +7,7 @@
 enum class Type
 {
     AssignExpr, BinExpr, GrpExpr, LitExpr, LogicExpr, UnExpr, VarExpr,
-    BlckStmt, ExprStmt, IfStmt, PrntStmt, VarStmt
+    BlckStmt, ExprStmt, IfStmt, PrntStmt, VarStmt, WhileStmt
 };
 
 class TypeIdentifier : public ExprVisitor, public StmtVisitor
@@ -61,6 +61,9 @@ public:
 
     StmtRetType visitVariableStmt(VariableStmt&) override
     { m_type = Type::ExprStmt; }
+
+    StmtRetType visitWhileStmt(WhileStmt&) override
+    { m_type = Type::WhileStmt; }
 
 private:
     Type m_type;

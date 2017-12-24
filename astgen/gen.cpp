@@ -209,6 +209,7 @@ int main()
     types.push_back("If         | Expr* cond, Stmt* thenBranch, Stmt* elseBranch");
     types.push_back("Print      | Expr* expr");
     types.push_back("Variable   | Token name, Expr* init");
+    types.push_back("While      | Expr* cond, Stmt* statement");
     out.close();
     out.open("../src/stmt.hpp", std::ios::trunc);
     if (!out.is_open())

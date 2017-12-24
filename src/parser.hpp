@@ -80,6 +80,10 @@ private:
         {
             return whileStatement();
         }
+        if (match({TokenType::For}))
+        {
+            return forStatement();
+        }
         return expressionStatement();
     }
 
@@ -94,18 +98,62 @@ private:
         return PStmt(new BlockStmt(std::move(statements)));
     }
 
-    PStmt printStatement()
-    {
-        PStmt stmt = PStmt(new PrintStmt(expression()));
-        consume(TokenType::Semicolon, "Expected ';' after expression.");
-        return stmt;
-    }
-
     PStmt expressionStatement()
     {
         PStmt stmt = PStmt(new ExpressionStmt(expression()));
         consume(TokenType::Semicolon, "Expected ';' after expression.");
         return stmt;
+    }
+
+    PStmt forStatement()
+    {
+        consume(TokenType::LeftParen, "Expected '(' after for.");
+        PStmt init;
+        if (!match({TokenType::Semicolon}))
+        {
+            if (match({TokenType::Var}))
+            {
+                init = varDeclaration();
+            }
+            else
+            {
+                init = expressionStatement();
+            }
+        }
+
+        PExpr cond = PExpr(new LiteralExpr(true));
+        if (!match({TokenType::Semicolon}))
+        {
+            cond = expression();
+            consume({TokenType::Semicolon},
+                    "No semicolon after for-condition.");
+        }
+
+        PStmt update;
+        if (!match({TokenType::RightParen}))
+        {
+            update = PStmt(new ExpressionStmt(expression()));
+            consume(TokenType::RightParen,
+                    "Expected ')' to end for-conditions.");
+        }
+
+        PStmt body = statement();
+        if (update)
+        {
+            decltype(BlockStmt::statements) stmts;
+            stmts.emplace_back(std::move(body));
+            stmts.emplace_back(std::move(update));
+            body = PStmt(new BlockStmt(std::move(stmts)));
+        }
+        body = PStmt(new WhileStmt(std::move(cond), std::move(body)));
+        if (init)
+        {
+            decltype(BlockStmt::statements) stmts;
+            stmts.emplace_back(std::move(init));
+            stmts.emplace_back(std::move(body));
+            return PStmt(new BlockStmt(std::move(stmts)));
+        }
+        return body;
     }
 
     PStmt ifStatement()
@@ -114,7 +162,7 @@ private:
         PExpr cond = expression();
         consume(TokenType::RightParen, "Expected ')' to end if-condition.");
         PStmt thenBranch = statement();
-        PStmt elseBranch = nullptr;
+        PStmt elseBranch;
         if (match({TokenType::Else}))
         {
             elseBranch = statement();
@@ -122,6 +170,13 @@ private:
         return PStmt(new IfStmt(std::move(cond),
                                 std::move(thenBranch),
                                 std::move(elseBranch)));
+    }
+
+    PStmt printStatement()
+    {
+        PStmt stmt = PStmt(new PrintStmt(expression()));
+        consume(TokenType::Semicolon, "Expected ';' after expression.");
+        return stmt;
     }
 
     PStmt whileStatement()
@@ -132,6 +187,7 @@ private:
         PStmt stmt = statement();
         return PStmt(new WhileStmt(std::move(cond), std::move(stmt)));
     }
+
 
     PExpr expression()
     {

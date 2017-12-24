@@ -11,6 +11,7 @@ using StmtRetType = void;
 
 class BlockStmt;
 class ExpressionStmt;
+class IfStmt;
 class PrintStmt;
 class VariableStmt;
 
@@ -19,6 +20,7 @@ class StmtVisitor
 public:
     virtual StmtRetType visitBlockStmt(BlockStmt&) = 0;
     virtual StmtRetType visitExpressionStmt(ExpressionStmt&) = 0;
+    virtual StmtRetType visitIfStmt(IfStmt&) = 0;
     virtual StmtRetType visitPrintStmt(PrintStmt&) = 0;
     virtual StmtRetType visitVariableStmt(VariableStmt&) = 0;
 };
@@ -59,6 +61,26 @@ public:
     }
 
     std::unique_ptr<Expr> expr;
+};
+
+class IfStmt : public Stmt
+{
+public:
+    IfStmt(std::unique_ptr<Expr>&& cond_, std::unique_ptr<Stmt>&& thenBranch_, std::unique_ptr<Stmt>&& elseBranch_)
+    {
+        cond = std::move(cond_);
+        thenBranch = std::move(thenBranch_);
+        elseBranch = std::move(elseBranch_);
+    }
+
+    StmtRetType accept(StmtVisitor& v) override
+    {
+        v.visitIfStmt(*this);
+    }
+
+    std::unique_ptr<Expr> cond;
+    std::unique_ptr<Stmt> thenBranch;
+    std::unique_ptr<Stmt> elseBranch;
 };
 
 class PrintStmt : public Stmt

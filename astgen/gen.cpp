@@ -205,6 +205,7 @@ int main()
     types.clear();
     types.push_back("Block      | std::vector<std::unique_ptr<Stmt>>' statements");
     types.push_back("Expression | Expr* expr");
+    types.push_back("If         | Expr* cond, Stmt* thenBranch, Stmt* elseBranch");
     types.push_back("Print      | Expr* expr");
     types.push_back("Variable   | Token name, Expr* init");
     out.close();

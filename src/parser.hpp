@@ -72,6 +72,10 @@ private:
         {
             return printStatement();
         }
+        if (match({TokenType::If}))
+        {
+            return ifStatement();
+        }
         return expressionStatement();
     }
 
@@ -98,6 +102,22 @@ private:
         PStmt stmt = PStmt(new ExpressionStmt(expression()));
         consume(TokenType::Semicolon, "Expected ';' after expression.");
         return stmt;
+    }
+
+    PStmt ifStatement()
+    {
+        consume(TokenType::LeftParen, "Expected '(' after if.");
+        PExpr cond = expression();
+        consume(TokenType::RightParen, "Expected ')' to end if-condition.");
+        PStmt thenBranch = statement();
+        PStmt elseBranch = nullptr;
+        if (match({TokenType::Else}))
+        {
+            elseBranch = statement();
+        }
+        return PStmt(new IfStmt(std::move(cond),
+                                std::move(thenBranch),
+                                std::move(elseBranch)));
     }
 
     PExpr expression()

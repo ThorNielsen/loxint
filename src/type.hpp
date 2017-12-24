@@ -6,7 +6,7 @@
 
 enum class Type
 {
-    AssignExpr, BinExpr, GrpExpr, LitExpr, UnExpr, VarExpr,
+    AssignExpr, BinExpr, GrpExpr, LitExpr, LogicExpr, UnExpr, VarExpr,
     BlckStmt, ExprStmt, IfStmt, PrntStmt, VarStmt
 };
 
@@ -37,6 +37,9 @@ public:
 
     ExprRetType visitLiteralExpr(LiteralExpr&) override
     { m_type = Type::LitExpr; return LoxObject();}
+
+    ExprRetType visitLogicalExpr(LogicalExpr&) override
+    { m_type = Type::LogicExpr; return LoxObject(); }
 
     ExprRetType visitUnaryExpr(UnaryExpr&) override
     { m_type = Type::UnExpr; return LoxObject();}

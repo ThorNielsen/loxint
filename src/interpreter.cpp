@@ -20,7 +20,23 @@ ExprRetType Interpreter::visitBinaryExpr(BinaryExpr& bin)
     case TokenType::Greater: return l > r;
     case TokenType::GreaterEqual: return l >= r;
     default:
-        throw LoxError("Binary expression couldn't be interpreted.");
+        throw LoxError("Unknown binary expression.");
+    }
+}
+
+ExprRetType Interpreter::visitLogicalExpr(LogicalExpr& le)
+{
+    auto l = le.left->accept(*this);
+    switch (le.oper.type)
+    {
+    case TokenType::And:
+        if (!l) return false;
+        return (bool)le.right->accept(*this);
+    case TokenType::Or:
+        if (l) return true;
+        return (bool)le.right->accept(*this);
+    default:
+        throw LoxError("Unknown logical expression.");
     }
 }
 

@@ -193,6 +193,7 @@ int main()
     types.push_back("Binary     | Expr* left, Token oper, Expr* right");
     types.push_back("Grouping   | Expr* expr");
     types.push_back("Literal    | LoxObject value");
+    types.push_back("Logical    | Expr* left, Token oper, Expr* right");
     types.push_back("Unary      | Token oper, Expr* right");
     types.push_back("Variable   | Token name");
     std::ofstream out("../src/expr.hpp", std::ios::trunc);

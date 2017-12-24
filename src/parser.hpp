@@ -126,7 +126,7 @@ private:
     }
     PExpr assignment()
     {
-        PExpr left = equality();
+        PExpr left = lor();
         if (match({TokenType::Equal}))
         {
             PExpr val = assignment();
@@ -137,6 +137,28 @@ private:
                 return PExpr(new AssignmentExpr(name, std::move(val)));
             }
             throw LoxError("Invalid assignment target.");
+        }
+        return left;
+    }
+    PExpr lor()
+    {
+        PExpr left = land();
+        while (match({TokenType::Or}))
+        {
+            Token oper = previous();
+            PExpr right = land();
+            left = PExpr(new LogicalExpr(std::move(left), oper, std::move(right)));
+        }
+        return left;
+    }
+    PExpr land()
+    {
+        PExpr left = equality();
+        while (match({TokenType::And}))
+        {
+            Token oper = previous();
+            PExpr right = equality();
+            left = PExpr(new LogicalExpr(std::move(left), oper, std::move(right)));
         }
         return left;
     }

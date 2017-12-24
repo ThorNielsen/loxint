@@ -13,6 +13,7 @@ class AssignmentExpr;
 class BinaryExpr;
 class GroupingExpr;
 class LiteralExpr;
+class LogicalExpr;
 class UnaryExpr;
 class VariableExpr;
 
@@ -23,6 +24,7 @@ public:
     virtual ExprRetType visitBinaryExpr(BinaryExpr&) = 0;
     virtual ExprRetType visitGroupingExpr(GroupingExpr&) = 0;
     virtual ExprRetType visitLiteralExpr(LiteralExpr&) = 0;
+    virtual ExprRetType visitLogicalExpr(LogicalExpr&) = 0;
     virtual ExprRetType visitUnaryExpr(UnaryExpr&) = 0;
     virtual ExprRetType visitVariableExpr(VariableExpr&) = 0;
 };
@@ -101,6 +103,26 @@ public:
     }
 
     LoxObject value;
+};
+
+class LogicalExpr : public Expr
+{
+public:
+    LogicalExpr(std::unique_ptr<Expr>&& left_, Token oper_, std::unique_ptr<Expr>&& right_)
+    {
+        left = std::move(left_);
+        oper = oper_;
+        right = std::move(right_);
+    }
+
+    ExprRetType accept(ExprVisitor& v) override
+    {
+        return v.visitLogicalExpr(*this);
+    }
+
+    std::unique_ptr<Expr> left;
+    Token oper;
+    std::unique_ptr<Expr> right;
 };
 
 class UnaryExpr : public Expr

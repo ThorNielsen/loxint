@@ -49,7 +49,7 @@ public:
 
     StmtRetType visitIfStmt(IfStmt& is) override
     {
-        if ((bool)is.cond->accept(*this))
+        if (is.cond->accept(*this))
         {
             is.thenBranch->accept(*this);
         }
@@ -76,6 +76,7 @@ public:
     {
         return lit.value;
     }
+    ExprRetType visitLogicalExpr(LogicalExpr&) override;
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {

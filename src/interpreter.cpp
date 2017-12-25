@@ -24,6 +24,17 @@ ExprRetType Interpreter::visitBinaryExpr(BinaryExpr& bin)
     }
 }
 
+ExprRetType Interpreter::visitCallExpr(CallExpr& ce)
+{
+    auto callee = ce.callee->accept(*this);
+    std::vector<LoxObject> args;
+    for (auto& arg : ce.args)
+    {
+        args.push_back(arg->accept(*this));
+    }
+    return callee(*this, args);
+}
+
 ExprRetType Interpreter::visitLogicalExpr(LogicalExpr& le)
 {
     auto l = le.left->accept(*this);

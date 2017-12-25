@@ -191,6 +191,7 @@ int main()
     std::vector<std::string> types;
     types.push_back("Assignment | Token name, Expr* val");
     types.push_back("Binary     | Expr* left, Token oper, Expr* right");
+    types.push_back("Call       | Expr* callee, Token paren, std::vector<std::unique_ptr<Expr>>' args");
     types.push_back("Grouping   | Expr* expr");
     types.push_back("Literal    | LoxObject value");
     types.push_back("Logical    | Expr* left, Token oper, Expr* right");

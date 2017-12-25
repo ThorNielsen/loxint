@@ -6,8 +6,9 @@
 
 enum class Type
 {
-    AssignExpr, BinExpr, GrpExpr, LitExpr, LogicExpr, UnExpr, VarExpr,
-    BlckStmt, ExprStmt, IfStmt, PrntStmt, VarStmt, WhileStmt
+    AssignExpr, BinExpr, CallExpr, GroupExpr, LitExpr, LogicExpr, UnaryExpr,
+    VarExpr,
+    BlockStmt, ExprStmt, IfStmt, PrintStmt, VarStmt, WhileStmt
 };
 
 class TypeIdentifier : public ExprVisitor, public StmtVisitor
@@ -27,28 +28,31 @@ public:
 
 
     ExprRetType visitAssignmentExpr(AssignmentExpr&) override
-    { m_type = Type::AssignExpr; return LoxObject();}
+    { m_type = Type::AssignExpr; return LoxObject(); }
 
     ExprRetType visitBinaryExpr(BinaryExpr&) override
-    { m_type = Type::BinExpr; return LoxObject();}
+    { m_type = Type::BinExpr; return LoxObject(); }
+
+    ExprRetType visitCallExpr(CallExpr&) override
+    { m_type = Type::CallExpr; return LoxObject(); }
 
     ExprRetType visitGroupingExpr(GroupingExpr&) override
-    { m_type = Type::GrpExpr; return LoxObject();}
+    { m_type = Type::GroupExpr; return LoxObject(); }
 
     ExprRetType visitLiteralExpr(LiteralExpr&) override
-    { m_type = Type::LitExpr; return LoxObject();}
+    { m_type = Type::LitExpr; return LoxObject(); }
 
     ExprRetType visitLogicalExpr(LogicalExpr&) override
     { m_type = Type::LogicExpr; return LoxObject(); }
 
     ExprRetType visitUnaryExpr(UnaryExpr&) override
-    { m_type = Type::UnExpr; return LoxObject();}
+    { m_type = Type::UnaryExpr; return LoxObject(); }
 
     ExprRetType visitVariableExpr(VariableExpr&) override
-    { m_type = Type::VarExpr; return LoxObject();}
+    { m_type = Type::VarExpr; return LoxObject(); }
 
     StmtRetType visitBlockStmt(BlockStmt&) override
-    { m_type = Type::BlckStmt; }
+    { m_type = Type::BlockStmt; }
 
     StmtRetType visitExpressionStmt(ExpressionStmt&) override
     { m_type = Type::ExprStmt; }
@@ -57,10 +61,10 @@ public:
     { m_type = Type::IfStmt; }
 
     StmtRetType visitPrintStmt(PrintStmt&) override
-    { m_type = Type::ExprStmt; }
+    { m_type = Type::PrintStmt; }
 
     StmtRetType visitVariableStmt(VariableStmt&) override
-    { m_type = Type::ExprStmt; }
+    { m_type = Type::VarStmt; }
 
     StmtRetType visitWhileStmt(WhileStmt&) override
     { m_type = Type::WhileStmt; }

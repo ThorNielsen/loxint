@@ -25,11 +25,6 @@ public:
         }
     }
 
-    ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
-    {
-        return m_env.getVar(as.name.lexeme) = as.val->accept(*this);
-    }
-
     StmtRetType visitBlockStmt(BlockStmt& bs) override
     {
         ScopeGuard newScope(m_env);
@@ -63,10 +58,12 @@ public:
     {
         std::cout << (std::string)ps.expr->accept(*this) << "\n";
     }
+
     StmtRetType visitVariableStmt(VariableStmt& vs) override
     {
         m_env.createVar(vs.name.lexeme, vs.init->accept(*this));
     }
+
     StmtRetType visitWhileStmt(WhileStmt& ws) override
     {
         while (ws.cond->accept(*this))
@@ -75,17 +72,30 @@ public:
         }
     }
 
+
+    ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
+    {
+        return m_env.getVar(as.name.lexeme) = as.val->accept(*this);
+    }
+
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
+
+    ExprRetType visitCallExpr(CallExpr&) override;
+
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
         return grp.expr->accept(*this);
     }
+
     ExprRetType visitLiteralExpr(LiteralExpr& lit) override
     {
         return lit.value;
     }
+
     ExprRetType visitLogicalExpr(LogicalExpr&) override;
+
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
+
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
         return m_env.getVar(ve.name.lexeme);

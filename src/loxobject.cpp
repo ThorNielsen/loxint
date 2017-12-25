@@ -1,5 +1,6 @@
 #include "loxobject.hpp"
 
+#include "callable.hpp"
 #include <sstream>
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
@@ -7,7 +8,7 @@
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 
 LoxObject::LoxObject(Token tok)
-    : string{}, number{}, type{}, boolean{}
+    : string{}, function{}, number{}, type{}, boolean{}
 {
     switch (tok.type)
     {
@@ -39,6 +40,21 @@ LoxObject::LoxObject(Token tok)
     }
 }
 
+LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject> args)
+{
+    if (type != LoxType::Callable)
+    {
+        std::cout << (int)type << std::endl;
+        throw LoxError("Cannot call non-callable.");
+    }
+    if (args.size() != function->arity())
+    {
+        throw LoxError("Function argument count mismatch.");
+    }
+    return (*function)(interpreter, args);
+}
+
+
 LoxObject::operator std::string() const
 {
     switch (type)
@@ -52,8 +68,14 @@ LoxObject::operator std::string() const
         return ss.str();
     }
     case LoxType::String: return string;
+    case LoxType::Callable:
+        // No conversion really makes sense. Should it be the function's name?
+        // Its definition? A static string like "function"? Something else?
+        // Make it an error to even try this as long as these questions hasn't
+        // been answered.
+        break;
     }
-    return "impossible";
+    throw LoxError("Could not convert object to string.");
 }
 
 LoxObject::operator double() const
@@ -64,6 +86,7 @@ LoxObject::operator double() const
     case LoxType::Bool: return boolean ? 1. : 0.;
     case LoxType::Number: return number;
     case LoxType::String:
+    {
         std::stringstream ss(string);
         double num;
         ss >> num;
@@ -73,7 +96,12 @@ LoxObject::operator double() const
         }
         return num;
     }
-    return 69105.;
+    case LoxType::Callable:
+        // Yes, converting a function (or other callable) to a number makes
+        // sense. Or not.
+        break;
+    }
+    throw LoxError("Could not convert object to number.");
 }
 
 LoxObject::operator bool() const
@@ -84,8 +112,12 @@ LoxObject::operator bool() const
     case LoxType::Bool:   return boolean;
     case LoxType::Number: return number != 0.;
     case LoxType::String: return string != "";
+    case LoxType::Callable:
+        // Is a function truthy? Or falsey? What about () -> false or
+        // () -> true?
+        break;
     }
-    return false;
+    throw LoxError("Could not convert object to bool.");
 }
 
 bool operator==(const LoxObject& a, const LoxObject& b)

@@ -285,7 +285,16 @@ private:
             PExpr right = unary();
             return PExpr(new UnaryExpr(oper, std::move(right)));
         }
-        return primary();
+        return call();
+    }
+    PExpr call()
+    {
+        PExpr expr = primary();
+        while (match({TokenType::LeftParen}))
+        {
+            expr = finishCall(std::move(expr));
+        }
+        return expr;
     }
     PExpr primary()
     {
@@ -306,6 +315,21 @@ private:
             return PExpr(new GroupingExpr(std::move(expr)));
         }
         throw std::runtime_error("Couldn't find a primary expression.");
+    }
+
+    PExpr finishCall(PExpr func)
+    {
+        decltype(CallExpr::args) args;
+        if (!isCurrentEqual(TokenType::RightParen))
+        {
+            do
+            {
+                args.emplace_back(expression());
+            } while (match({TokenType::Comma}));
+        }
+        Token paren = consume(TokenType::RightParen,
+                              "Expected ')' after function call.");
+        return PExpr(new CallExpr(std::move(func), paren, std::move(args)));
     }
 
     bool match(std::vector<TokenType> tok)

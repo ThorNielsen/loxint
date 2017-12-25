@@ -9,10 +9,7 @@
 class Environment
 {
 public:
-    Environment()
-    {
-        pushScope();
-    }
+    Environment();
     ~Environment() {}
 
     bool exists(std::string name)

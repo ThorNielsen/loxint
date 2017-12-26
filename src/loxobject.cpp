@@ -4,7 +4,6 @@
 #include <sstream>
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
-#pragma GCC diagnostic ignored "-Wswitch"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 
 LoxObject::LoxObject(Token tok)
@@ -137,6 +136,8 @@ bool operator==(const LoxObject& a, const LoxObject& b)
             return a.number == b.number;
         case LoxType::String:
             return a.string == b.string;
+        default:
+            throw LoxError("Cannot compare objects for equality.");
         }
     }
     if (a.type > b.type) return b == a;
@@ -146,6 +147,8 @@ bool operator==(const LoxObject& a, const LoxObject& b)
     case LoxType::Bool: return a.boolean == (bool)b;
     case LoxType::Number: return a.number == (double)b;
     case LoxType::String: return a.string == (std::string)b;
+    default:
+        throw LoxError("Cannot compare objects for equality.");
     }
     return false;
 }
@@ -162,6 +165,8 @@ bool operator<(const LoxObject& a, const LoxObject& b)
             return a.number < b.number;
         case LoxType::String:
             return a.string < b.string;
+        default:
+            throw LoxError("Objects are not well-ordered.");
         }
     }
     throw LoxError("Only objects of the same type can be well-ordered.");
@@ -183,6 +188,8 @@ LoxObject& LoxObject::operator+=(const LoxObject& o)
         case LoxType::String:
             string += o.string;
             break;
+        default:
+            throw LoxError("Cannot add objects.");
         }
         return *this;
     }
@@ -214,6 +221,8 @@ LoxObject& LoxObject::operator-=(const LoxObject& o)
             break;
         case LoxType::String:
             throw LoxError("Cannot subtract string.");
+        default:
+            throw LoxError("Cannot subtract objects.");
         }
         return *this;
     }
@@ -245,6 +254,8 @@ LoxObject& LoxObject::operator*=(const LoxObject& o)
             break;
         case LoxType::String:
             throw LoxError("Cannot multiply strings.");
+        default:
+            throw LoxError("Cannot multiply objects.");
         }
         return *this;
     }
@@ -276,6 +287,8 @@ LoxObject& LoxObject::operator/=(const LoxObject& o)
             break;
         case LoxType::String:
             throw LoxError("Cannot divide strings.");
+        default:
+            throw LoxError("Cannot divide objects.");
         }
         return *this;
     }
@@ -296,10 +309,11 @@ LoxObject operator-(LoxObject a)
 {
     switch (a.type)
     {
-    case LoxType::Nil: case LoxType::Bool: case LoxType::String:
-        throw LoxError("Unary minus is not defined for current type.");
     case LoxType::Number:
         a.number = -a.number;
+        break;
+    default:
+        throw LoxError("Unary minus is not defined for current type.");
     }
     return a;
 }
@@ -320,6 +334,8 @@ LoxObject operator!(LoxObject a)
     case LoxType::Bool:
         a.boolean = !a.boolean;
         break;
+    default:
+        throw LoxError("Cannot negate object.");
     }
     a.type = LoxType::Bool;
     return a;

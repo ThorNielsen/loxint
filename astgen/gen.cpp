@@ -224,6 +224,7 @@ int main()
     types.push_back("Function   | Token name, std::vector<Token> params, BlockStmt* statements");
     types.push_back("If         | Expr* cond, Stmt* thenBranch, Stmt* elseBranch");
     types.push_back("Print      | Expr* expr");
+    types.push_back("Return     | Token keyword, Expr* value");
     types.push_back("Variable   | Token name, Expr* init");
     types.push_back("While      | Expr* cond, Stmt* statement");
     out.close();

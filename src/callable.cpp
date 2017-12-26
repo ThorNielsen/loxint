@@ -11,6 +11,13 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
     {
         env.createVar(params[i].lexeme, args[i]);
     }
-    in.visitBlockStmt(*statements);
+    try
+    {
+        in.visitBlockStmt(*statements);
+    }
+    catch (LoxObject lo)
+    {
+        return lo;
+    }
     return LoxObject();
 }

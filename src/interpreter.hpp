@@ -17,12 +17,19 @@ public:
 
     void interpret(const std::vector<std::unique_ptr<Stmt>>& statements)
     {
-        for (auto& statement : statements)
+        try
         {
-            if (statement)
+            for (auto& statement : statements)
             {
-                statement->accept(*this);
+                if (statement)
+                {
+                    statement->accept(*this);
+                }
             }
+        }
+        catch (LoxError err)
+        {
+            std::cerr << "Interpreting error: " << err.what() << "\n";
         }
     }
 
@@ -68,6 +75,11 @@ public:
     StmtRetType visitPrintStmt(PrintStmt& ps) override
     {
         std::cout << (std::string)ps.expr->accept(*this) << "\n";
+    }
+
+    StmtRetType visitReturnStmt(ReturnStmt& rs) override
+    {
+        throw rs.value->accept(*this);
     }
 
     StmtRetType visitVariableStmt(VariableStmt& vs) override

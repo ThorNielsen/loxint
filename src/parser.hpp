@@ -107,6 +107,10 @@ private:
         {
             return printStatement();
         }
+        if (match({TokenType::Return}))
+        {
+            return returnStatement();
+        }
         if (match({TokenType::If}))
         {
             return ifStatement();
@@ -138,6 +142,18 @@ private:
         PStmt stmt = PStmt(new ExpressionStmt(expression()));
         consume(TokenType::Semicolon, "Expected ';' after expression.");
         return stmt;
+    }
+
+    PStmt returnStatement()
+    {
+        Token keyword = previous();
+        PExpr val;
+        if (!isCurrentEqual(TokenType::Semicolon))
+        {
+            val = expression();
+        }
+        consume(TokenType::Semicolon, "Expected ';' after return expression.");
+        return PStmt(new ReturnStmt(keyword, std::move(val)));
     }
 
     PStmt forStatement()

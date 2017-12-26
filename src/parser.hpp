@@ -34,10 +34,8 @@ private:
     {
         try
         {
-            if (match({TokenType::Var}))
-            {
-                return varDeclaration();
-            }
+            if (match({TokenType::Fun})) return function("function");
+            if (match({TokenType::Var})) return varDeclaration();
             return statement();
         }
         catch (LoxError err)
@@ -46,6 +44,29 @@ private:
             std::cerr << "Parsing error: " << err.what() << "\n";
             return nullptr;
         }
+    }
+
+    PStmt function(std::string kind)
+    {
+        Token name = consume(TokenType::Identifier,
+                             "Expected " + kind + " name.");
+        consume(TokenType::LeftParen, "Expected '(' after " + kind + " name.");
+        decltype(FunctionStmt::params) params;
+        if (!isCurrentEqual(TokenType::RightParen))
+        {
+            do
+            {
+                params.push_back(consume(TokenType::Identifier,
+                                         "Expected parameter name."));
+            } while (match({TokenType::Comma}));
+        }
+        consume(TokenType::RightParen, "Expected ')' after parameters.");
+        consume(TokenType::LeftBrace, "Expected '{' to start " + kind + ".");
+        std::unique_ptr<BlockStmt> body =
+            std::unique_ptr<BlockStmt>(static_cast<BlockStmt*>(block().release()));
+        return PStmt(new FunctionStmt(name,
+                                      params,
+                                      std::move(body)));
     }
 
     PStmt varDeclaration()

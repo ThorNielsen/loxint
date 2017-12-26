@@ -59,6 +59,7 @@
 			<Add directory="src" />
 		</Compiler>
 		<Unit filename="src/astprinter.hpp" />
+		<Unit filename="src/callable.cpp" />
 		<Unit filename="src/callable.hpp" />
 		<Unit filename="src/environment.cpp" />
 		<Unit filename="src/environment.hpp" />

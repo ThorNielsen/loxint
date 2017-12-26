@@ -1,6 +1,7 @@
 #ifndef INTERPRETER_HPP_INCLUDED
 #define INTERPRETER_HPP_INCLUDED
 
+#include "callable.hpp"
 #include "environment.hpp"
 #include "expr.hpp"
 #include "loxobject.hpp"
@@ -40,6 +41,16 @@ public:
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
     {
         es.expr->accept(*this);
+    }
+
+    StmtRetType visitFunctionStmt(FunctionStmt& fs) override
+    {
+        if (fs.statements == nullptr)
+        {
+            throw LoxError("Function declaration has already been interpreted.");
+        }
+        m_env.createVar(fs.name.lexeme,
+                        LoxObject(std::make_shared<LoxFunction>(&fs)));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -100,6 +111,12 @@ public:
     {
         return m_env.getVar(ve.name.lexeme);
     }
+
+    Environment& getEnv()
+    {
+        return m_env;
+    }
+
 private:
     Environment m_env;
 };

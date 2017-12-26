@@ -2,8 +2,9 @@
 // time by a script. Edits will be reverted.
 #ifndef STMT_HPP_INCLUDED
 #define STMT_HPP_INCLUDED
-#include "token.hpp"
+#include "expr.hpp"
 #include "loxobject.hpp"
+#include "token.hpp"
 #include <memory>
 #include <vector>
 
@@ -11,6 +12,7 @@ using StmtRetType = void;
 
 class BlockStmt;
 class ExpressionStmt;
+class FunctionStmt;
 class IfStmt;
 class PrintStmt;
 class VariableStmt;
@@ -21,6 +23,7 @@ class StmtVisitor
 public:
     virtual StmtRetType visitBlockStmt(BlockStmt&) = 0;
     virtual StmtRetType visitExpressionStmt(ExpressionStmt&) = 0;
+    virtual StmtRetType visitFunctionStmt(FunctionStmt&) = 0;
     virtual StmtRetType visitIfStmt(IfStmt&) = 0;
     virtual StmtRetType visitPrintStmt(PrintStmt&) = 0;
     virtual StmtRetType visitVariableStmt(VariableStmt&) = 0;
@@ -30,6 +33,7 @@ public:
 class Stmt
 {
 public:
+    virtual ~Stmt() {}
     virtual void accept(StmtVisitor&) = 0;
 };
 
@@ -63,6 +67,26 @@ public:
     }
 
     std::unique_ptr<Expr> expr;
+};
+
+class FunctionStmt : public Stmt
+{
+public:
+    FunctionStmt(Token name_, std::vector<Token> params_, std::unique_ptr<BlockStmt>&& statements_)
+    {
+        name = name_;
+        params = params_;
+        statements = std::move(statements_);
+    }
+
+    StmtRetType accept(StmtVisitor& v) override
+    {
+        v.visitFunctionStmt(*this);
+    }
+
+    Token name;
+    std::vector<Token> params;
+    std::unique_ptr<BlockStmt> statements;
 };
 
 class IfStmt : public Stmt

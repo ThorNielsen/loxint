@@ -49,7 +49,10 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
     }
     if (args.size() != function->arity())
     {
-        throw LoxError("Function argument count mismatch.");
+        std::string msg = "Function argument count mismatch. Expected "
+            + std::to_string(function->arity()) + ", got "
+            + std::to_string(args.size()) + "\n";
+        throw LoxError(msg);
     }
     return (*function)(interpreter, args);
 }

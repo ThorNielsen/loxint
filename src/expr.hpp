@@ -2,8 +2,8 @@
 // time by a script. Edits will be reverted.
 #ifndef EXPR_HPP_INCLUDED
 #define EXPR_HPP_INCLUDED
-#include "token.hpp"
 #include "loxobject.hpp"
+#include "token.hpp"
 #include <memory>
 #include <vector>
 
@@ -34,6 +34,7 @@ public:
 class Expr
 {
 public:
+    virtual ~Expr() {}
     virtual LoxObject accept(ExprVisitor&) = 0;
 };
 

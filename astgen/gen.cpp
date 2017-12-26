@@ -154,16 +154,24 @@ void defineVisitor(std::ostream& out, std::string baseName, std::string retType,
 }
 
 void createAst(std::ostream& out, std::string baseName, std::string retType,
-               const std::vector<std::string>& types)
+               const std::vector<std::string>& types,
+               const std::vector<std::string>& includes,
+               const std::vector<std::string>& classDeclarations)
 {
     out << "// Warning: This code is auto-generated and may be changed at any\n"
         << "// time by a script. Edits will be reverted.\n";
     out << "#ifndef " + uppercase(baseName) + "_HPP_INCLUDED\n";
     out << "#define " + uppercase(baseName) + "_HPP_INCLUDED\n";
-    out << "#include \"token.hpp\"\n";
-    out << "#include \"loxobject.hpp\"\n";
-    out << "#include <memory>\n";
-    out << "#include <vector>\n\n";
+    for (auto& inc : includes)
+    {
+        out << "#include " << inc << "\n";
+    }
+    if (includes.size()) out << "\n";
+    for (auto& decl : classDeclarations)
+    {
+        out << "class " << decl << ";\n";
+    }
+    if (classDeclarations.size()) out << "\n";
     out << "using " + baseName + "RetType = " << retType << ";\n\n";
     std::vector<std::string> classNames;
     for (auto& s : types)
@@ -174,6 +182,7 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
     defineVisitor(out, baseName, retType, classNames);
     out << "class " + baseName + "\n{\n";
     out << "public:\n";
+    out << "    virtual ~" << baseName << "() {}\n";
     out << "    virtual " << retType << " accept("
         << baseName << "Visitor&) = 0;";
     out << "\n};\n\n";
@@ -197,16 +206,22 @@ int main()
     types.push_back("Logical    | Expr* left, Token oper, Expr* right");
     types.push_back("Unary      | Token oper, Expr* right");
     types.push_back("Variable   | Token name");
+    std::vector<std::string> includes;
+    includes.push_back(R"("loxobject.hpp")");
+    includes.push_back(R"("token.hpp")");
+    includes.push_back(R"(<memory>)");
+    includes.push_back(R"(<vector>)");
     std::ofstream out("../src/expr.hpp", std::ios::trunc);
     if (!out.is_open())
     {
         std::cerr << "Could not open file for writing!\n";
         return 1;
     }
-    createAst(out, "Expr", "LoxObject", types);
+    createAst(out, "Expr", "LoxObject", types, includes, {});
     types.clear();
     types.push_back("Block      | std::vector<std::unique_ptr<Stmt>>' statements");
     types.push_back("Expression | Expr* expr");
+    types.push_back("Function   | Token name, std::vector<Token> params, BlockStmt* statements");
     types.push_back("If         | Expr* cond, Stmt* thenBranch, Stmt* elseBranch");
     types.push_back("Print      | Expr* expr");
     types.push_back("Variable   | Token name, Expr* init");
@@ -218,5 +233,6 @@ int main()
         std::cerr << "Could not open file for writing!\n";
         return 1;
     }
-    createAst(out, "Stmt", "void", types);
+    includes.insert(includes.begin(), R"("expr.hpp")");
+    createAst(out, "Stmt", "void", types, includes, {});
 }

@@ -59,7 +59,7 @@ public:
         {
             is.thenBranch->accept(*this);
         }
-        else
+        else if (is.elseBranch != nullptr)
         {
             is.elseBranch->accept(*this);
         }

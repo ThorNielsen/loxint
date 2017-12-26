@@ -9,32 +9,65 @@
 #include "parser.hpp"
 #include "interpreter.hpp"
 
-bool run(Interpreter& interpreter, std::string source)
+int run(Interpreter& interpreter, std::string source, bool repl = false)
 {
-    try
+    Parser p;
+    Lexer lex;
+    auto stmts = p.parse(lex.scanTokens(source), repl);
+    if (p.hadError())
     {
-        Lexer lex;
-        Parser p;
-        auto stmts = p.parse(lex.scanTokens(source));
-        interpreter.interpret(stmts);
-        return true;
+        if (p.parsedToEnd())
+        {
+            return 1;
+        }
+        return 2;
     }
-    catch (LoxError& err)
+    interpreter.interpret(stmts);
+    return 0;
+}
+
+bool isspace(std::string s)
+{
+    for (auto& c : s)
     {
-        std::cerr << "Error: " << err.what() << "\n";
-        return false;
+        switch(c)
+        {
+        case '\n': case '\r': case '\t': case ' ':
+            break;
+        default:
+            return false;
+        }
     }
+    return true;
 }
 
 void runPrompt()
 {
     Interpreter interpreter;
+    std::string prevCode = "";
     while (std::cin.good())
     {
-        std::cout << "> ";
+        if (!isspace(prevCode)) std::cout << ". ";
+        else                    std::cout << "> ";
         std::string line;
         std::getline(std::cin, line, '\n');
-        run(interpreter, line);
+
+        // If the user wants to stop appending code to previous code, they enter
+        // a blank line (one consisting entirely of whitespace) in which case we
+        // want to show them all errors in the previous code.
+        if (isspace(line) && !isspace(prevCode))
+        {
+            run(interpreter, prevCode, false);
+            prevCode = "";
+        }
+        if (run(interpreter, prevCode+line, true) == 1)
+        {
+            prevCode += "\n" + line;
+        }
+        else
+        {
+            prevCode = "";
+        }
     }
 }
 
@@ -53,7 +86,7 @@ bool runFile(std::string path)
     code.resize(end - start);
     in.read(&code[0], end - start);
     Interpreter interpreter;
-    return run(interpreter, code);
+    return run(interpreter, code) == 0;
 }
 
 int main(int argc, char* argv[])

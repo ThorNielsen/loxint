@@ -5,9 +5,9 @@
 #include <string>
 #include <stdexcept>
 
-inline void error(size_t line, std::string msg)
+inline std::string error(size_t line, std::string msg)
 {
-    std::cerr << "Error (" << (line+1) << "): " << msg << "\n";
+    return "Error (" + std::to_string(line+1) + "): " + msg;
 }
 
 using LoxError = std::runtime_error;

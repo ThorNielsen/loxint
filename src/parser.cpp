@@ -1,6 +1,7 @@
 #include "parser.hpp"
 
 Parser::Parser()
+    : m_tokens{{"", TokenType::Eof, 0}}, m_ctok{}, m_error{false}, m_repl{false}
 {
 }
 

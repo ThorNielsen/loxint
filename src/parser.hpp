@@ -14,16 +14,28 @@ public:
     Parser();
     ~Parser();
 
-    std::vector<std::unique_ptr<Stmt>> parse(std::vector<Token> tokens)
+    std::vector<std::unique_ptr<Stmt>> parse(std::vector<Token> tokens,
+                                             bool fromRepl = false)
     {
         m_tokens = tokens;
         m_ctok = 0;
+        m_error = false;
+        m_repl = fromRepl;
         std::vector<std::unique_ptr<Stmt>> statements;
         while (!atEnd())
         {
             statements.emplace_back(declaration());
         }
         return statements;
+    }
+
+    bool parsedToEnd() const
+    {
+        return m_tokens[m_ctok].type == TokenType::Eof;
+    }
+    bool hadError() const
+    {
+        return m_error;
     }
 
 private:
@@ -40,7 +52,9 @@ private:
         }
         catch (LoxError err)
         {
+            m_error = true;
             synchronise();
+            if (m_repl && parsedToEnd()) return nullptr;
             std::cerr << "Parsing error: " << err.what() << "\n";
             return nullptr;
         }
@@ -393,14 +407,16 @@ private:
     Token consume(TokenType type, std::string msg)
     {
         if (isCurrentEqual(type)) return advance();
-        error(peek().line, "Parsing error: " + msg);
-        throw LoxError("Parsing error.");
+
+        throw LoxError(error(peek().line, "Parsing error: " + msg));
     }
 
     void synchronise();
 
     std::vector<Token> m_tokens;
     size_t m_ctok;
+    bool m_error;
+    bool m_repl;
 };
 
 #endif // PARSER_HPP_INCLUDED

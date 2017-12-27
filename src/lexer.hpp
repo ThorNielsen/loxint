@@ -16,7 +16,17 @@ public:
         m_line = 0;
         while (!atEnd())
         {
-            scanToken();
+            try
+            {
+                scanToken();
+            }
+            catch (LoxError err)
+            {
+                std::string e = err.what();
+                if (e == "") std::cerr << "Unknown lexing error.\n";
+                else         std::cerr << "Lexing e" + e.substr(1) << "\n";
+                throw;
+            }
         }
         m_tokens.push_back({"", TokenType::Eof, m_line});
         return m_tokens;
@@ -90,7 +100,7 @@ private:
                 case 'r': scanned.push_back('\r'); break;
                 case 't': scanned.push_back('\t'); break;
                 default:
-                    error(m_line, "Erroneous escape.");
+                    throw LoxError(error(m_line, "Erroneous escape."));
                     return;
                 }
                 escaped = false;
@@ -107,7 +117,7 @@ private:
         }
         if (atEnd())
         {
-            error(m_line, "Unterminated string.");
+            throw LoxError(error(m_line, "Unterminated string."));
             return;
         }
         advance();
@@ -207,7 +217,7 @@ private:
             }
             else
             {
-                error(m_line, "Unexpected character.");
+                throw LoxError(error(m_line, "Unexpected character."));
             }
             break;
         }

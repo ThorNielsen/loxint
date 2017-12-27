@@ -11,19 +11,28 @@
 
 int run(Interpreter& interpreter, std::string source, bool repl = false)
 {
-    Parser p;
-    Lexer lex;
-    auto stmts = p.parse(lex.scanTokens(source), repl);
-    if (p.hadError())
+    try
     {
-        if (p.parsedToEnd())
+        Parser p;
+
+        Lexer lex;
+        auto stmts = p.parse(lex.scanTokens(source), repl);
+        if (p.hadError())
         {
-            return 1;
+            if (p.parsedToEnd())
+            {
+                return 1;
+            }
+            return 2;
         }
-        return 2;
+        interpreter.interpret(stmts);
+        return 0;
     }
-    interpreter.interpret(stmts);
-    return 0;
+    catch (LoxError err)
+    {
+        if (repl) return 3;
+        throw;
+    }
 }
 
 bool isspace(std::string s)

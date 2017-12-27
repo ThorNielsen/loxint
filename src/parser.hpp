@@ -55,7 +55,9 @@ private:
             m_error = true;
             if (!m_repl) synchronise();
             if (m_repl && parsedToEnd()) return nullptr;
-            std::cerr << "Parsing error: " << err.what() << "\n";
+            std::string e = err.what();
+            if (e == "") std::cerr << "Unknown parsing error.\n";
+            else         std::cerr << "Parsing e" << e.substr(1) << "\n";
             return nullptr;
         }
     }
@@ -77,7 +79,8 @@ private:
         consume(TokenType::RightParen, "Expected ')' after parameters.");
         consume(TokenType::LeftBrace, "Expected '{' to start " + kind + ".");
         std::unique_ptr<BlockStmt> body =
-            std::unique_ptr<BlockStmt>(static_cast<BlockStmt*>(block().release()));
+            std::unique_ptr<BlockStmt>(static_cast<BlockStmt*>
+                                           (block().release()));
         return PStmt(new FunctionStmt(name,
                                       params,
                                       std::move(body)));
@@ -177,7 +180,7 @@ private:
         {
             cond = expression();
             consume({TokenType::Semicolon},
-                    "No semicolon after for-condition.");
+                    "Expected semicolon after for-condition.");
         }
 
         PStmt update;
@@ -256,7 +259,8 @@ private:
                 Token name = static_cast<VariableExpr*>(left.get())->name;
                 return PExpr(new AssignmentExpr(name, std::move(val)));
             }
-            throw LoxError("Invalid assignment target.");
+            throw LoxError(error(previous().line,
+                                 "Invalid assignment target."));
         }
         return left;
     }
@@ -362,10 +366,11 @@ private:
         if (match({TokenType::LeftParen}))
         {
             PExpr expr = expression();
-            consume(TokenType::RightParen, "No matching end paren.");
+            consume(TokenType::RightParen, "Expected ')' after expression.");
             return PExpr(new GroupingExpr(std::move(expr)));
         }
-        throw std::runtime_error("Couldn't find a primary expression.");
+        throw LoxError(error(peek().line,
+                             "Couldn't find a primary expression."));
     }
 
     PExpr finishCall(PExpr func)
@@ -424,7 +429,7 @@ private:
     {
         if (isCurrentEqual(type)) return advance();
 
-        throw LoxError(error(peek().line, "Parsing error: " + msg));
+        throw LoxError(error(peek().line, msg));
     }
 
     void synchronise();

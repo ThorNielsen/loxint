@@ -22,7 +22,7 @@ public:
         m_error = false;
         m_repl = fromRepl;
         std::vector<std::unique_ptr<Stmt>> statements;
-        while (!atEnd())
+        while (!atEnd() && !hadError())
         {
             statements.emplace_back(declaration());
         }
@@ -53,7 +53,7 @@ private:
         catch (LoxError err)
         {
             m_error = true;
-            synchronise();
+            if (!m_repl) synchronise();
             if (m_repl && parsedToEnd()) return nullptr;
             std::cerr << "Parsing error: " << err.what() << "\n";
             return nullptr;

@@ -31,6 +31,10 @@ public:
         {
             std::cerr << "Interpreting error: " << err.what() << "\n";
         }
+        catch (LoxObject lo)
+        {
+            std::cerr << "Interpreting error: Unexpected return.\n";
+        }
     }
 
     StmtRetType visitBlockStmt(BlockStmt& bs) override

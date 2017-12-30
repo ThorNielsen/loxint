@@ -1,8 +1,10 @@
 #include "environment.hpp"
 #include "callable.hpp"
+#include <memory>
 
 Environment::Environment()
 {
     pushScope();
-    createVar("clock", LoxCallable(new TimeFunction()));
+    auto clock = LoxCallable(new TimeFunction());
+    createVar(clock->name(), clock);
 }

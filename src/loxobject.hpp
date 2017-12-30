@@ -19,8 +19,6 @@ inline bool operator<(LoxType a, LoxType b)
 class Interpreter;
 class Callable;
 
-//using LoxFunction = LoxObject(*)(Interpreter&, std::vector<LoxObject>);
-
 using LoxCallable = std::shared_ptr<Callable>;
 
 class LoxObject

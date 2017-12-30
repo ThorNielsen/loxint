@@ -66,16 +66,13 @@ LoxObject::operator std::string() const
     case LoxType::Number:
     {
         std::stringstream ss;
+        ss.precision(15);
         ss << number;
         return ss.str();
     }
     case LoxType::String: return string;
     case LoxType::Callable:
-        // No conversion really makes sense. Should it be the function's name?
-        // Its definition? A static string like "function"? Something else?
-        // Make it an error to even try this as long as these questions hasn't
-        // been answered.
-        break;
+        return "<fun " + function->name() + ">";
     }
     throw LoxError("Could not convert object to string.");
 }

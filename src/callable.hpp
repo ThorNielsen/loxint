@@ -15,6 +15,7 @@ public:
     virtual ~Callable() {}
     virtual size_t arity() const = 0;
     virtual LoxObject operator()(Interpreter&, Arguments args) = 0;
+    virtual std::string name() const = 0;
 };
 
 class TimeFunction : public Callable
@@ -31,6 +32,10 @@ public:
     {
         return std::chrono::duration<double>(Clock::now() - begin).count();
     }
+    std::string name() const override
+    {
+        return "clock";
+    }
 private:
     decltype(Clock::now()) begin;
 };
@@ -44,7 +49,7 @@ public:
     LoxFunction(Stmt* stmt)
     {
         auto* fs = static_cast<FunctionStmt*>(stmt);
-        name = fs->name;
+        fname = fs->name;
         params = fs->params;
         statements = std::move(fs->statements);
         fs->statements = nullptr; // This is probably redundant but it is done
@@ -53,8 +58,9 @@ public:
 
     size_t arity() const override { return params.size(); }
     LoxObject operator()(Interpreter& in, Arguments args) override;
+    std::string name() const override { return fname.lexeme; }
 private:
-    Token name;
+    Token fname;
     std::vector<Token> params;
     std::unique_ptr<BlockStmt> statements;
 };

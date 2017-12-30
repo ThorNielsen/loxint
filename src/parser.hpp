@@ -20,6 +20,7 @@ public:
         m_tokens = tokens;
         m_ctok = 0;
         m_error = false;
+        m_continuable = true;
         m_repl = fromRepl;
         std::vector<std::unique_ptr<Stmt>> statements;
         while (!atEnd() && !hadError())
@@ -27,6 +28,11 @@ public:
             statements.emplace_back(declaration());
         }
         return statements;
+    }
+
+    bool continuable() const
+    {
+        return m_continuable;
     }
 
     bool parsedToEnd() const
@@ -53,8 +59,8 @@ private:
         catch (LoxError err)
         {
             m_error = true;
-            if (!m_repl) synchronise();
-            if (m_repl && parsedToEnd()) return nullptr;
+            if (m_repl && continuable()) return nullptr;
+            synchronise();
             std::string e = err.what();
             if (e == "") std::cerr << "Unknown parsing error.\n";
             else         std::cerr << "Parsing e" << e.substr(1) << "\n";
@@ -369,6 +375,7 @@ private:
             consume(TokenType::RightParen, "Expected ')' after expression.");
             return PExpr(new GroupingExpr(std::move(expr)));
         }
+        if (!atEnd()) m_continuable = false;
         throw LoxError(error(peek().line,
                              "Couldn't find a primary expression."));
     }
@@ -428,7 +435,7 @@ private:
     Token consume(TokenType type, std::string msg)
     {
         if (isCurrentEqual(type)) return advance();
-
+        if (!atEnd()) m_continuable = false;
         throw LoxError(error(peek().line, msg));
     }
 
@@ -437,6 +444,7 @@ private:
     std::vector<Token> m_tokens;
     size_t m_ctok;
     bool m_error;
+    bool m_continuable;
     bool m_repl;
 };
 

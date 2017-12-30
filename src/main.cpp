@@ -19,7 +19,7 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
         auto stmts = p.parse(lex.scanTokens(source), repl);
         if (p.hadError())
         {
-            if (p.parsedToEnd())
+            if (p.continuable())
             {
                 return 1;
             }

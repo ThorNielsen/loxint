@@ -32,12 +32,12 @@ public:
             if (i) m_ast += " ";
             m_ast += fs.params[i].lexeme;
         }
-        m_ast += ")";
+        m_ast += "){";
         for (auto& stmt : fs.statements->statements)
         {
             stmt->accept(*this);
         }
-        m_ast += ")";
+        m_ast += "})";
     }
     void visitIfStmt(IfStmt& is) override
     {
@@ -101,12 +101,9 @@ public:
     {
         m_ast += "(call ";
         ce.callee->accept(*this);
-        m_ast += " ";
-        bool first = true;
         for (auto& expr : ce.args)
         {
-            if (!first) m_ast += " ";
-            first = false;
+            m_ast += " ";
             expr->accept(*this);
         }
         m_ast += ")";

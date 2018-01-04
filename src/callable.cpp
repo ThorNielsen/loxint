@@ -5,13 +5,14 @@
 
 LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
-    ScopeEnvironment se(in.getEnv(), closure);
+    ScopeEnvironment se(closure, Environment::createNew(closure));
     for (size_t i = 0; i < args.size(); ++i)
     {
-        in.getEnv()->createVar(params[i].lexeme, args[i]);
+        se.env->createVar(params[i].lexeme, args[i]);
     }
     try
     {
+        ScopeEnvironment guard(in.getEnv(), se.env);
         for (auto& stmt : statements->statements)
         {
             stmt->accept(in);

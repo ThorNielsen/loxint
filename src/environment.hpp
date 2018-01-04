@@ -13,9 +13,13 @@ using PEnvironment = std::shared_ptr<Environment>;
 class Environment
 {
 public:
-    Environment() { }
+    Environment(PEnvironment encl) : enclosing{encl} { }
     ~Environment() { }
 
+    static PEnvironment createNew(PEnvironment old)
+    {
+        return std::make_shared<Environment>(old);
+    }
     bool exists(std::string name)
     {
         if (m_vars.find(name) != m_vars.end()) return true;
@@ -29,6 +33,7 @@ public:
         {
             return var->second;
         }
+        if (&*enclosing == this) throw new int;
         if (enclosing != nullptr) return enclosing->getVar(name);
         throw LoxError("'" + name + "' was not declared.");
     }
@@ -36,7 +41,7 @@ public:
     {
         m_vars[name] = lo;
     }
-    PEnvironment enclosing;
+    const PEnvironment enclosing;
 private:
     std::map<std::string, LoxObject> m_vars;
 };
@@ -45,20 +50,19 @@ class ScopeEnvironment
 {
 public:
     ScopeEnvironment(PEnvironment& enclosing,
-                     PEnvironment newEnv = std::make_shared<Environment>())
-        : m_enclosing(enclosing)
+                     PEnvironment newEnv)
+                     : env{newEnv}, prev{enclosing}, var(enclosing)
     {
-        newEnv->enclosing = enclosing;
-        curr = newEnv;
-        enclosing = curr;
+        var = env;
     }
     ~ScopeEnvironment()
     {
-        m_enclosing = m_enclosing->enclosing;
+        var = prev;
     }
-    PEnvironment curr;
+    PEnvironment env;
 private:
-    PEnvironment& m_enclosing;
+    PEnvironment prev;
+    PEnvironment& var;
 };
 
 #endif // ENVIRONMENT_HPP_INCLUDED

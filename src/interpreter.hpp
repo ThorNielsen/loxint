@@ -14,7 +14,7 @@ class Interpreter : public ExprVisitor, public StmtVisitor
 public:
     Interpreter()
     {
-        m_env = std::make_shared<Environment>();
+        m_env = std::make_shared<Environment>(nullptr);
         auto clock = LoxCallable(new TimeFunction());
         m_env->createVar(clock->name(), clock);
     }
@@ -46,7 +46,7 @@ public:
 
     StmtRetType visitBlockStmt(BlockStmt& bs) override
     {
-        ScopeEnvironment newScope(m_env);
+        ScopeEnvironment newScope(m_env, Environment::createNew(m_env));
         for (auto& statement : bs.statements)
         {
             if (statement)

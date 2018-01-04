@@ -14,14 +14,11 @@ class Interpreter : public ExprVisitor, public StmtVisitor
 public:
     Interpreter()
     {
-        m_env = new Environment;
+        m_env = std::make_shared<Environment>();
         auto clock = LoxCallable(new TimeFunction());
         m_env->createVar(clock->name(), clock);
     }
-    ~Interpreter()
-    {
-        delete m_env;
-    }
+    ~Interpreter() { }
 
     void interpret(std::vector<std::unique_ptr<Stmt>>&& statements)
     {
@@ -70,7 +67,7 @@ public:
         {
             throw LoxError("Function declaration has already been interpreted.");
         }
-        auto func = std::make_shared<LoxFunction>(&fs);
+        auto func = std::make_shared<LoxFunction>(&fs, m_env);
         m_env->createVar(fs.name.lexeme, LoxObject(func));
     }
 
@@ -138,13 +135,13 @@ public:
         return m_env->getVar(ve.name.lexeme);
     }
 
-    Environment*& getEnv()
+    PEnvironment& getEnv()
     {
         return m_env;
     }
 
 private:
-    Environment* m_env;
+    PEnvironment m_env;
     std::vector<std::unique_ptr<Stmt>> m_stmts;
 };
 

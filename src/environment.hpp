@@ -3,8 +3,12 @@
 
 #include "loxobject.hpp"
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
+
+class Environment;
+using PEnvironment = std::shared_ptr<Environment>;
 
 class Environment
 {
@@ -32,7 +36,7 @@ public:
     {
         m_vars[name] = lo;
     }
-    Environment* enclosing;
+    PEnvironment enclosing;
 private:
     std::map<std::string, LoxObject> m_vars;
 };
@@ -40,20 +44,21 @@ private:
 class ScopeEnvironment
 {
 public:
-    ScopeEnvironment(Environment*& prev) : m_enc(prev)
+    ScopeEnvironment(PEnvironment& enclosing,
+                     PEnvironment newEnv = std::make_shared<Environment>())
+        : m_enclosing(enclosing)
     {
-        newEnv = new Environment;
-        newEnv->enclosing = prev;
-        prev = newEnv;
+        newEnv->enclosing = enclosing;
+        curr = newEnv;
+        enclosing = curr;
     }
     ~ScopeEnvironment()
     {
-        m_enc = m_enc->enclosing;
-        delete newEnv;
+        m_enclosing = m_enclosing->enclosing;
     }
-    Environment* newEnv;
+    PEnvironment curr;
 private:
-    Environment*& m_enc;
+    PEnvironment& m_enclosing;
 };
 
 #endif // ENVIRONMENT_HPP_INCLUDED

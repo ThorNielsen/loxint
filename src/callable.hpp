@@ -3,6 +3,7 @@
 
 #include "loxobject.hpp"
 #include "stmt.hpp"
+#include "environment.hpp"
 
 #include <chrono>
 #include <memory>
@@ -46,11 +47,12 @@ public:
     // Warning: This stores a non-owning pointer to the function declaration
     // statements. These must continue to be available for as long as this
     // object lives.
-    LoxFunction(FunctionStmt* stmt)
+    LoxFunction(FunctionStmt* stmt, PEnvironment enclosing)
     {
         fname = stmt->name;
         params = stmt->params;
         statements = stmt->statements.get();
+        closure = enclosing;
     }
 
     ~LoxFunction() { }
@@ -60,6 +62,7 @@ public:
     LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return fname.lexeme; }
 private:
+    PEnvironment closure;
     Token fname;
     std::vector<Token> params;
     BlockStmt* statements;

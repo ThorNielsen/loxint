@@ -5,11 +5,10 @@
 
 LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
-    Environment*& env = in.getEnv();
-    ScopeEnvironment newEnv(env);
+    ScopeEnvironment se(in.getEnv(), closure);
     for (size_t i = 0; i < args.size(); ++i)
     {
-        env->createVar(params[i].lexeme, args[i]);
+        in.getEnv()->createVar(params[i].lexeme, args[i]);
     }
     try
     {

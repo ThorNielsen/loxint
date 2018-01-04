@@ -51,9 +51,7 @@ public:
         auto* fs = static_cast<FunctionStmt*>(stmt);
         fname = fs->name;
         params = fs->params;
-        statements = std::move(fs->statements);
-        fs->statements = nullptr; // This is probably redundant but it is done
-                                  // anyway to make that clear.
+        statements = fs->statements.get();
     }
 
     size_t arity() const override { return params.size(); }
@@ -62,7 +60,7 @@ public:
 private:
     Token fname;
     std::vector<Token> params;
-    std::unique_ptr<BlockStmt> statements;
+    BlockStmt* statements;
 };
 
 #endif // CALLABLE_HPP_INCLUDED

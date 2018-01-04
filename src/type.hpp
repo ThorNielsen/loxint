@@ -3,6 +3,7 @@
 
 #include "expr.hpp"
 #include "stmt.hpp"
+#include <iostream>
 
 enum class Type
 {
@@ -11,6 +12,30 @@ enum class Type
     BlockStmt, ExprStmt, FunctionStmt, IfStmt, PrintStmt, ReturnStmt,
     VarStmt, WhileStmt
 };
+
+inline std::ostream& operator<<(std::ostream& ost, Type t)
+{
+    switch (t)
+    {
+    case Type::AssignExpr: ost << "AssignExpr"; return ost;
+    case Type::BinExpr: ost << "BinExpr"; return ost;
+    case Type::CallExpr: ost << "CallExpr"; return ost;
+    case Type::GroupExpr: ost << "GroupExpr"; return ost;
+    case Type::LitExpr: ost << "LitExpr"; return ost;
+    case Type::LogicExpr: ost << "LogicExpr"; return ost;
+    case Type::UnaryExpr: ost << "UnaryExpr"; return ost;
+    case Type::VarExpr: ost << "VarExpr"; return ost;
+    case Type::BlockStmt: ost << "BlockStmt"; return ost;
+    case Type::ExprStmt: ost << "ExprStmt"; return ost;
+    case Type::FunctionStmt: ost << "FunctionStmt"; return ost;
+    case Type::IfStmt: ost << "IfStmt"; return ost;
+    case Type::PrintStmt: ost << "PrintStmt"; return ost;
+    case Type::ReturnStmt: ost << "ReturnStmt"; return ost;
+    case Type::VarStmt: ost << "VarStmt"; return ost;
+    case Type::WhileStmt: ost << "WhileStmt"; return ost;
+    }
+    return ost;
+}
 
 class TypeIdentifier : public ExprVisitor, public StmtVisitor
 {

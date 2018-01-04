@@ -17,6 +17,11 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
 
         Lexer lex;
         auto stmts = p.parse(lex.scanTokens(source), repl);
+        ASTPrinter printer;
+        for (auto& stmt : stmts)
+        {
+            printer.print(stmt.get());
+        }
         if (p.hadError())
         {
             if (p.continuable())

@@ -68,6 +68,7 @@ void runPrompt()
         {
             run(interpreter, prevCode, false);
             prevCode = "";
+            continue;
         }
         if (run(interpreter, prevCode+line, true) == 1)
         {

@@ -12,8 +12,16 @@
 class Interpreter : public ExprVisitor, public StmtVisitor
 {
 public:
-    Interpreter() {}
-    ~Interpreter() {}
+    Interpreter()
+    {
+        m_env = new Environment;
+        auto clock = LoxCallable(new TimeFunction());
+        m_env->createVar(clock->name(), clock);
+    }
+    ~Interpreter()
+    {
+        delete m_env;
+    }
 
     void interpret(const std::vector<std::unique_ptr<Stmt>>& statements)
     {
@@ -39,7 +47,7 @@ public:
 
     StmtRetType visitBlockStmt(BlockStmt& bs) override
     {
-        ScopeGuard newScope(m_env);
+        ScopeEnvironment newScope(m_env);
         for (auto& statement : bs.statements)
         {
             if (statement)
@@ -60,8 +68,8 @@ public:
         {
             throw LoxError("Function declaration has already been interpreted.");
         }
-        m_env.createVar(fs.name.lexeme,
-                        LoxObject(std::make_shared<LoxFunction>(&fs)));
+        m_env->createVar(fs.name.lexeme,
+                         LoxObject(std::make_shared<LoxFunction>(&fs)));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -88,7 +96,7 @@ public:
 
     StmtRetType visitVariableStmt(VariableStmt& vs) override
     {
-        m_env.createVar(vs.name.lexeme, vs.init->accept(*this));
+        m_env->createVar(vs.name.lexeme, vs.init->accept(*this));
     }
 
     StmtRetType visitWhileStmt(WhileStmt& ws) override
@@ -102,7 +110,7 @@ public:
 
     ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
     {
-        return m_env.getVar(as.name.lexeme) = as.val->accept(*this);
+        return m_env->getVar(as.name.lexeme) = as.val->accept(*this);
     }
 
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
@@ -125,16 +133,16 @@ public:
 
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
-        return m_env.getVar(ve.name.lexeme);
+        return m_env->getVar(ve.name.lexeme);
     }
 
     Environment& getEnv()
     {
-        return m_env;
+        return *m_env;
     }
 
 private:
-    Environment m_env;
+    Environment* m_env;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

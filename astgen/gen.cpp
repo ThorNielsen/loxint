@@ -80,7 +80,7 @@ std::string fieldtype(const std::string& s)
 void defineType(std::ostream& out, std::string baseName, std::string retType,
                 std::string className, std::string fields)
 {
-    auto fieldList = split(fields, ',');
+    auto fieldList = split(fields, ';');
     for (auto& field : fieldList)
     {
         field = trim(field);
@@ -198,19 +198,21 @@ void createAst(std::ostream& out, std::string baseName, std::string retType,
 int main()
 {
     std::vector<std::string> types;
-    types.push_back("Assignment | Token name, Expr* val");
-    types.push_back("Binary     | Expr* left, Token oper, Expr* right");
-    types.push_back("Call       | Expr* callee, Token paren, std::vector<std::unique_ptr<Expr>>' args");
+    types.push_back("Assignment | Token name; Expr* val");
+    types.push_back("Binary     | Expr* left; Token oper; Expr* right");
+    types.push_back("Call       | Expr* callee; Token paren; std::vector<std::unique_ptr<Expr>>' args");
     types.push_back("Grouping   | Expr* expr");
     types.push_back("Literal    | LoxObject value");
-    types.push_back("Logical    | Expr* left, Token oper, Expr* right");
-    types.push_back("Unary      | Token oper, Expr* right");
+    types.push_back("Logical    | Expr* left; Token oper; Expr* right");
+    types.push_back("Unary      | Token oper; Expr* right");
     types.push_back("Variable   | Token name");
+
     std::vector<std::string> includes;
     includes.push_back(R"("loxobject.hpp")");
     includes.push_back(R"("token.hpp")");
     includes.push_back(R"(<memory>)");
     includes.push_back(R"(<vector>)");
+
     std::ofstream out("../src/expr.hpp", std::ios::trunc);
     if (!out.is_open())
     {
@@ -219,14 +221,17 @@ int main()
     }
     createAst(out, "Expr", "LoxObject", types, includes, {});
     types.clear();
+
+
     types.push_back("Block      | std::vector<std::unique_ptr<Stmt>>' statements");
     types.push_back("Expression | Expr* expr");
-    types.push_back("Function   | Token name, std::vector<Token> params, BlockStmt* statements");
-    types.push_back("If         | Expr* cond, Stmt* thenBranch, Stmt* elseBranch");
+    types.push_back("Function   | Token name; std::vector<Token> params; BlockStmt* statements; std::vector<std::pair<std::string,LoxObject>> vars");
+    types.push_back("If         | Expr* cond; Stmt* thenBranch; Stmt* elseBranch");
     types.push_back("Print      | Expr* expr");
-    types.push_back("Return     | Token keyword, Expr* value");
-    types.push_back("Variable   | Token name, Expr* init");
-    types.push_back("While      | Expr* cond, Stmt* statement");
+    types.push_back("Return     | Token keyword; Expr* value");
+    types.push_back("Variable   | Token name; Expr* init");
+    types.push_back("While      | Expr* cond; Stmt* statement");
+
     out.close();
     out.open("../src/stmt.hpp", std::ios::trunc);
     if (!out.is_open())
@@ -234,6 +239,9 @@ int main()
         std::cerr << "Could not open file for writing!\n";
         return 1;
     }
+
     includes.insert(includes.begin(), R"("expr.hpp")");
+    includes.push_back(R"(<utility>)");
+
     createAst(out, "Stmt", "void", types, includes, {});
 }

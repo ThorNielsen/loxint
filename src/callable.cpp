@@ -13,7 +13,10 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
     }
     try
     {
-        in.visitBlockStmt(*statements);
+        for (auto& stmt : statements->statements)
+        {
+            stmt->accept(in);
+        }
     }
     catch (LoxObject lo)
     {

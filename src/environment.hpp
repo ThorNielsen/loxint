@@ -9,8 +9,8 @@
 class Environment
 {
 public:
-    Environment() {}
-    ~Environment() {}
+    Environment() { }
+    ~Environment() { }
 
     bool exists(std::string name)
     {
@@ -42,6 +42,7 @@ class ScopeEnvironment
 public:
     ScopeEnvironment(Environment*& prev) : m_enc(prev)
     {
+        newEnv = prev;
         newEnv = new Environment;
         newEnv->enclosing = prev;
         prev = newEnv;

@@ -46,13 +46,15 @@ public:
     // Warning: This stores a non-owning pointer to the function declaration
     // statements. These must continue to be available for as long as this
     // object lives.
-    LoxFunction(Stmt* stmt)
+    LoxFunction(FunctionStmt* stmt)
     {
-        auto* fs = static_cast<FunctionStmt*>(stmt);
-        fname = fs->name;
-        params = fs->params;
-        statements = fs->statements.get();
+        fname = stmt->name;
+        params = stmt->params;
+        statements = stmt->statements.get();
     }
+
+    ~LoxFunction() { }
+
 
     size_t arity() const override { return params.size(); }
     LoxObject operator()(Interpreter& in, Arguments args) override;

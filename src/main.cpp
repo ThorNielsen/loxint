@@ -17,11 +17,11 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
 
         Lexer lex;
         auto stmts = p.parse(lex.scanTokens(source), repl);
-        ASTPrinter printer;
+        /*ASTPrinter printer;
         for (auto& stmt : stmts)
         {
             printer.print(stmt.get());
-        }
+        }*/
         if (p.hadError())
         {
             if (p.continuable())
@@ -30,7 +30,7 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
             }
             return 2;
         }
-        interpreter.interpret(stmts);
+        interpreter.interpret(std::move(stmts));
         return 0;
     }
     catch (LoxError err)

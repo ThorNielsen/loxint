@@ -23,7 +23,7 @@ public:
         delete m_env;
     }
 
-    void interpret(const std::vector<std::unique_ptr<Stmt>>& statements)
+    void interpret(std::vector<std::unique_ptr<Stmt>>&& statements)
     {
         try
         {
@@ -31,7 +31,8 @@ public:
             {
                 if (statement)
                 {
-                    statement->accept(*this);
+                    m_stmts.emplace_back(std::move(statement));
+                    m_stmts.back()->accept(*this);
                 }
             }
         }
@@ -43,6 +44,7 @@ public:
         {
             std::cerr << "Interpreting error: Unexpected return.\n";
         }
+
     }
 
     StmtRetType visitBlockStmt(BlockStmt& bs) override
@@ -68,8 +70,8 @@ public:
         {
             throw LoxError("Function declaration has already been interpreted.");
         }
-        m_env->createVar(fs.name.lexeme,
-                         LoxObject(std::make_shared<LoxFunction>(&fs)));
+        auto func = std::make_shared<LoxFunction>(&fs);
+        m_env->createVar(fs.name.lexeme, LoxObject(func));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -143,6 +145,7 @@ public:
 
 private:
     Environment* m_env;
+    std::vector<std::unique_ptr<Stmt>> m_stmts;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

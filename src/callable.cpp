@@ -5,7 +5,8 @@
 
 LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
-    ScopeEnvironment se(closure, Environment::createNew(closure));
+    auto cl = closure;
+    ScopeEnvironment se(cl, Environment::createNew(cl));
     for (size_t i = 0; i < args.size(); ++i)
     {
         se.env->createVar(params[i].lexeme, args[i]);

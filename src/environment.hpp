@@ -33,7 +33,6 @@ public:
         {
             return var->second;
         }
-        if (&*enclosing == this) throw new int;
         if (enclosing != nullptr) return enclosing->getVar(name);
         throw LoxError("'" + name + "' was not declared.");
     }

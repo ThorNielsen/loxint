@@ -5,7 +5,7 @@
 
 LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
-    Environment* env = &in.getEnv();
+    Environment*& env = in.getEnv();
     ScopeEnvironment newEnv(env);
     for (size_t i = 0; i < args.size(); ++i)
     {

@@ -42,7 +42,6 @@ class ScopeEnvironment
 public:
     ScopeEnvironment(Environment*& prev) : m_enc(prev)
     {
-        newEnv = prev;
         newEnv = new Environment;
         newEnv->enclosing = prev;
         prev = newEnv;

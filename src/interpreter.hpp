@@ -138,9 +138,9 @@ public:
         return m_env->getVar(ve.name.lexeme);
     }
 
-    Environment& getEnv()
+    Environment*& getEnv()
     {
-        return *m_env;
+        return m_env;
     }
 
 private:

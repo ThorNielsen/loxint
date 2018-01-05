@@ -92,7 +92,8 @@ public:
 
     StmtRetType visitReturnStmt(ReturnStmt& rs) override
     {
-        throw rs.value->accept(*this);
+        if (rs.value != nullptr) throw rs.value->accept(*this);
+        throw LoxObject();
     }
 
     StmtRetType visitVariableStmt(VariableStmt& vs) override

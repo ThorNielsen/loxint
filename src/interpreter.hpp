@@ -6,6 +6,7 @@
 #include "expr.hpp"
 #include "loxobject.hpp"
 #include "stmt.hpp"
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -14,9 +15,10 @@ class Interpreter : public ExprVisitor, public StmtVisitor
 public:
     Interpreter()
     {
-        m_env = std::make_shared<Environment>(nullptr);
+        m_globs = Environment::createNew(nullptr);
+        m_env = m_globs;
         auto clock = LoxCallable(new TimeFunction());
-        m_env->createVar(clock->name(), clock);
+        m_globs->assign(clock->name(), clock);
     }
     ~Interpreter() { }
 
@@ -68,7 +70,7 @@ public:
             throw LoxError("Function declaration has already been interpreted.");
         }
         auto func = std::make_shared<LoxFunction>(&fs, m_env);
-        m_env->createVar(fs.name.lexeme, LoxObject(func));
+        m_env->assign(fs.name.lexeme, LoxObject(func));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -95,7 +97,7 @@ public:
 
     StmtRetType visitVariableStmt(VariableStmt& vs) override
     {
-        m_env->createVar(vs.name.lexeme, vs.init->accept(*this));
+        m_env->assign(vs.name.lexeme, vs.init->accept(*this));
     }
 
     StmtRetType visitWhileStmt(WhileStmt& ws) override
@@ -109,7 +111,12 @@ public:
 
     ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
     {
-        return m_env->getVar(as.name.lexeme) = as.val->accept(*this);
+        LoxObject value = as.val->accept(*this);
+        if (m_locals.find(&as) != m_locals.end())
+        {
+            m_env->assign(m_locals[&as], as.name.lexeme, value);
+        }
+        return value;
     }
 
     ExprRetType visitBinaryExpr(BinaryExpr&) override;
@@ -132,7 +139,7 @@ public:
 
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
-        return m_env->getVar(ve.name.lexeme);
+        return getVariable(ve.name, &ve);
     }
 
     PEnvironment& getEnv()
@@ -140,9 +147,24 @@ public:
         return m_env;
     }
 
+    void resolve(Expr* expr, size_t depth)
+    {
+        m_locals[expr] = depth;
+    }
+
 private:
+    LoxObject& getVariable(Token name, Expr* expr)
+    {
+        if (m_locals.find(expr) != m_locals.end())
+        {
+            return m_env->get(m_locals[expr], name.lexeme);
+        }
+        return m_globs->get(name.lexeme);
+    }
+    PEnvironment m_globs;
     PEnvironment m_env;
     std::vector<std::unique_ptr<Stmt>> m_stmts;
+    std::map<Expr*, size_t> m_locals;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

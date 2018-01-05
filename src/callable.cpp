@@ -6,14 +6,18 @@
 LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
     auto cl = closure;
-    ScopeEnvironment se(cl, Environment::createNew(cl));
+    ScopeEnvironment se(in.getEnv(), Environment::createNew(cl));
+    //ScopeEnvironment se(in.getEnv(), Environment::copy(cl, in.getEnv()));
     for (size_t i = 0; i < args.size(); ++i)
     {
-        se.env->createVar(params[i].lexeme, args[i]);
+        se.env->assign(params[i].lexeme, args[i]);
     }
+    //se.env->dump();
     try
     {
-        ScopeEnvironment guard(in.getEnv(), se.env);
+        //statements->accept(in);
+
+        //ScopeEnvironment guard(in.getEnv(), Environment::createNew(in.getEnv()));
         for (auto& stmt : statements->statements)
         {
             stmt->accept(in);

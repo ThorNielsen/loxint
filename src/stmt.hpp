@@ -75,12 +75,11 @@ public:
 class FunctionStmt : public Stmt
 {
 public:
-    FunctionStmt(Token name_, std::vector<Token> params_, std::unique_ptr<BlockStmt>&& statements_, std::vector<std::pair<std::string,LoxObject>> vars_)
+    FunctionStmt(Token name_, std::vector<Token> params_, std::unique_ptr<BlockStmt>&& statements_)
     {
         name = name_;
         params = params_;
         statements = std::move(statements_);
-        vars = vars_;
     }
 
     StmtRetType accept(StmtVisitor& v) override
@@ -91,7 +90,6 @@ public:
     Token name;
     std::vector<Token> params;
     std::unique_ptr<BlockStmt> statements;
-    std::vector<std::pair<std::string,LoxObject>> vars;
 };
 
 class IfStmt : public Stmt

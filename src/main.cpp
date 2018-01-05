@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "lexer.hpp"
+#include "resolver.hpp"
 
 #include "astprinter.hpp"
 #include "parser.hpp"
@@ -14,9 +15,10 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
     try
     {
         Parser p;
-
         Lexer lex;
         auto stmts = p.parse(lex.scanTokens(source), repl);
+        Resolver r;
+        r.resolve(stmts, interpreter);
         /*ASTPrinter printer;
         for (auto& stmt : stmts)
         {

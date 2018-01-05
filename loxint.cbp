@@ -11,6 +11,7 @@
 				<Option object_output="obj/debug/" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_48" />
+				<Option parameters="test.lox" />
 				<Compiler>
 					<Add option="-Werror" />
 					<Add option="-g" />
@@ -72,6 +73,7 @@
 		<Unit filename="src/main.cpp" />
 		<Unit filename="src/parser.cpp" />
 		<Unit filename="src/parser.hpp" />
+		<Unit filename="src/resolver.hpp" />
 		<Unit filename="src/stmt.hpp" />
 		<Unit filename="src/token.cpp" />
 		<Unit filename="src/token.hpp" />

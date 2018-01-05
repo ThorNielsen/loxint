@@ -89,8 +89,7 @@ private:
                                            (block().release()));
         return PStmt(new FunctionStmt(name,
                                       params,
-                                      std::move(body),
-                                      {}));
+                                      std::move(body)));
     }
 
     PStmt varDeclaration()

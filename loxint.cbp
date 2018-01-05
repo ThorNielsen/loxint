@@ -11,7 +11,6 @@
 				<Option object_output="obj/debug/" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_compiler_48" />
-				<Option parameters="test.lox" />
 				<Compiler>
 					<Add option="-Werror" />
 					<Add option="-g" />

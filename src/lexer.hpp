@@ -13,7 +13,7 @@ public:
         m_src = source;
         m_pos = 0;
         m_start = 0;
-        m_line = 0;
+        m_line = 1;
         while (!atEnd())
         {
             try

@@ -7,7 +7,7 @@
 
 inline std::string error(size_t line, std::string msg)
 {
-    return "Error (" + std::to_string(line+1) + "): " + msg;
+    return "Error (" + std::to_string(line) + "): " + msg;
 }
 
 using LoxError = std::runtime_error;

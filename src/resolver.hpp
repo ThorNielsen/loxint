@@ -14,14 +14,25 @@ class Resolver : public ExprVisitor, public StmtVisitor
 public:
     Resolver() {}
     ~Resolver() {}
-    void resolve(std::vector<std::unique_ptr<Stmt>>& stmts, Interpreter& in)
+    bool resolve(std::vector<std::unique_ptr<Stmt>>& stmts, Interpreter& in)
     {
         interpreter = &in;
-        for (auto& stmt : stmts)
+        m_ftype = FunctionType::None;
+        try
         {
-            stmt->accept(*this);
+            for (auto& stmt : stmts)
+            {
+                stmt->accept(*this);
+            }
+        }
+        catch (LoxError err)
+        {
+            std::cerr << err.what() << "\n";
+            interpreter = nullptr;
+            return false;
         }
         interpreter = nullptr;
+        return true;
     }
 
     StmtRetType visitBlockStmt(BlockStmt& bs) override
@@ -41,7 +52,7 @@ public:
     {
         declare(fs.name);
         define(fs.name);
-        resolveFunction(fs);
+        resolveFunction(fs, FunctionType::Function);
     }
     StmtRetType visitIfStmt(IfStmt& is) override
     {
@@ -55,6 +66,10 @@ public:
     }
     StmtRetType visitReturnStmt(ReturnStmt& rs) override
     {
+        if (m_ftype == FunctionType::None)
+        {
+            throwError(rs.keyword.line, "Cannot return from top-level code.");
+        }
         if (rs.value != nullptr) resolve(rs.value);
     }
     StmtRetType visitWhileStmt(WhileStmt& ws) override
@@ -121,8 +136,8 @@ public:
             && m_names.front().find(ve.name.lexeme) != m_names.front().end()
             && !m_names.front()[ve.name.lexeme])
         {
-            throw LoxError(error(ve.name.line,
-                                 "Variable refers to itself in initialisation."));
+            throwError(ve.name.line,
+                       "Variable refers to itself in initialisation.");
         }
         resolveLocal(ve, ve.name);
         return "";
@@ -134,6 +149,10 @@ public:
         return "";
     }
 private:
+    enum class FunctionType
+    {
+        None, Function,
+    };
     void resolveLocal(Expr& expr, Token name)
     {
         size_t cscope = 0;
@@ -147,8 +166,10 @@ private:
             ++cscope;
         }
     }
-    void resolveFunction(FunctionStmt& func)
+    void resolveFunction(FunctionStmt& func, FunctionType ftype)
     {
+        auto oldft = m_ftype;
+        m_ftype = ftype;
         pushScope();
         for (auto param : func.params)
         {
@@ -160,6 +181,7 @@ private:
             stmt->accept(*this);
         }
         popScope();
+        m_ftype = oldft;
     }
     void resolve(std::unique_ptr<Stmt>& stmt)
     {
@@ -173,6 +195,11 @@ private:
     void declare(Token name)
     {
         if (m_names.empty()) return;
+        if (m_names.back().find(name.lexeme) != m_names.back().end())
+        {
+            throwError(name.line,
+                       "Variable '" + name.lexeme + "' was already declared.");
+        }
         m_names.back()[name.lexeme] = false;
     }
     void define(Token name)
@@ -180,9 +207,7 @@ private:
         if (m_names.empty()) return;
         if (m_names.back().find(name.lexeme) == m_names.back().end())
         {
-            throw LoxError("Resolver tries to define "
-                           + name.lexeme + " which has not"
-                           + " been declared.");
+            throwError(name.line, "Undeclared name '" + name.lexeme + "'");
         }
         m_names.back()[name.lexeme] = true;
     }
@@ -194,12 +219,16 @@ private:
     {
         m_names.pop_back();
     }
-    std::string error(size_t line, std::string msg)
+    size_t currentScope() const { return m_names.size(); }
+    void throwError(size_t line, std::string msg)
     {
-        return "Resolver error (" + std::to_string(line) + "): " + msg;
+        throw LoxError("Resolver error (line "
+                       + std::to_string(line) + "): "
+                       + msg);
     }
     std::vector<std::map<std::string, bool>> m_names;
     Interpreter* interpreter;
+    FunctionType m_ftype;
 };
 
 #endif // RESOLVER_HPP_INCLUDED

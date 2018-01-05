@@ -17,8 +17,6 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
         Parser p;
         Lexer lex;
         auto stmts = p.parse(lex.scanTokens(source), repl);
-        Resolver r;
-        r.resolve(stmts, interpreter);
         /*ASTPrinter printer;
         for (auto& stmt : stmts)
         {
@@ -31,6 +29,11 @@ int run(Interpreter& interpreter, std::string source, bool repl = false)
                 return 1;
             }
             return 2;
+        }
+        Resolver r;
+        if (!r.resolve(stmts, interpreter))
+        {
+            return 4;
         }
         interpreter.interpret(std::move(stmts));
         return 0;
@@ -79,7 +82,7 @@ void runPrompt()
         }
         if (run(interpreter, prevCode+line, true) == 1)
         {
-            prevCode += "\n" + line;
+            prevCode += (prevCode.empty() ? "" : "\n") + line;
         }
         else
         {

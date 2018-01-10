@@ -17,7 +17,7 @@ public:
     {
         m_globs = Environment::createNew(nullptr);
         m_env = m_globs;
-        auto clock = LoxCallable(new TimeFunction());
+        auto clock = std::shared_ptr<Callable>(new TimeFunction());
         m_globs->assign(clock->name(), clock);
     }
     ~Interpreter() { }
@@ -56,6 +56,12 @@ public:
                 statement->accept(*this);
             }
         }
+    }
+
+    StmtRetType visitClassStmt(ClassStmt& cs) override
+    {
+        auto classy = std::make_shared<LoxClass>(&cs, m_env);
+        m_env->assign(cs.name.lexeme, LoxObject(classy));
     }
 
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
@@ -124,6 +130,11 @@ public:
 
     ExprRetType visitCallExpr(CallExpr&) override;
 
+    ExprRetType visitGetExpr(GetExpr& ge) override
+    {
+        return ge.object->accept(*this).get(ge.name);
+    }
+
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
         return grp.expr->accept(*this);
@@ -135,6 +146,11 @@ public:
     }
 
     ExprRetType visitLogicalExpr(LogicalExpr&) override;
+
+    ExprRetType visitSetExpr(SetExpr& se) override
+    {
+        return se.object->accept(*this).set(se.name, se.value->accept(*this));
+    }
 
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
 

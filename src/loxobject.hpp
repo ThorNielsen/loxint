@@ -8,7 +8,8 @@
 
 enum class LoxType
 {
-    Nil = 0, Bool = 1, Number = 2, String = 3, Callable = 4,
+    Nil = 0, Bool = 1, Number = 2, String = 3, Callable = 4, Class = 5,
+    Instance = 6,
 };
 
 inline bool operator<(LoxType a, LoxType b)
@@ -18,22 +19,26 @@ inline bool operator<(LoxType a, LoxType b)
 
 class Interpreter;
 class Callable;
-
-using LoxCallable = std::shared_ptr<Callable>;
+class LoxClass;
+class LoxInstance;
 
 class LoxObject
 {
 public:
     LoxObject()
-        : string{}, function{}, number{}, type{LoxType::Nil}, boolean{} {}
+        : string{}, function{}, classy{}, instance{}, number{}, type{LoxType::Nil}, boolean{} {}
     LoxObject(bool b)
-        : string{}, function{}, number{}, type{LoxType::Bool}, boolean{b} {}
+        : string{}, function{}, classy{}, instance{}, number{}, type{LoxType::Bool}, boolean{b} {}
     LoxObject(double num)
-        : string{}, function{}, number{num}, type{LoxType::Number}, boolean{} {}
+        : string{}, function{}, classy{}, instance{}, number{num}, type{LoxType::Number}, boolean{} {}
     LoxObject(std::string s)
-        : string{s}, function{}, number{}, type{LoxType::String}, boolean{} {}
-    LoxObject(LoxCallable c)
-        : string{}, function{c}, number{}, type{LoxType::Callable}, boolean{} {}
+        : string{s}, function{}, classy{}, instance{}, number{}, type{LoxType::String}, boolean{} {}
+    LoxObject(std::shared_ptr<Callable> c)
+        : string{}, function{c}, classy{}, instance{}, number{}, type{LoxType::Callable}, boolean{} {}
+    LoxObject(std::shared_ptr<LoxClass> c)
+        : string{}, function{}, classy{c}, instance{}, number{}, type{LoxType::Class}, boolean{} {}
+    LoxObject(std::shared_ptr<LoxInstance> li)
+        : string{}, function{}, classy{}, instance{li}, number{}, type{LoxType::Instance}, boolean{} {}
 
     LoxObject(Token tok);
 
@@ -46,12 +51,17 @@ public:
     LoxObject& operator*=(const LoxObject& o);
     LoxObject& operator/=(const LoxObject& o);
 
+    LoxObject get(Token name);
+    LoxObject set(Token name, LoxObject value);
+
     operator std::string() const;
     operator double() const;
     operator bool() const;
 
     std::string string;
-    LoxCallable function;
+    std::shared_ptr<Callable> function;
+    std::shared_ptr<LoxClass> classy;
+    std::shared_ptr<LoxInstance> instance;
     double number;
     LoxType type;
     bool boolean;
@@ -63,6 +73,10 @@ private:
         {
             throw LoxError("Cannot convert callable to non-callable.");
         }
+        if (type == LoxType::Class || type == LoxType::Instance)
+        {
+            throw LoxError("Cannot convert class to non-class.");
+        }
         switch (t)
         {
         case LoxType::Nil: break;
@@ -71,6 +85,9 @@ private:
         case LoxType::String: string = (std::string)(*this); break;
         case LoxType::Callable:
             throw LoxError("Cannot convert non-callable to callable.");
+        case LoxType::Class:
+        case LoxType::Instance:
+            throw LoxError("Cannot convert non-class to class.");
         }
         type = t;
     }

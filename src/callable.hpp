@@ -6,6 +6,7 @@
 #include "environment.hpp"
 
 #include <chrono>
+#include <map>
 #include <memory>
 
 using Arguments = std::vector<LoxObject>;
@@ -66,6 +67,58 @@ private:
     Token fname;
     std::vector<Token> params;
     BlockStmt* statements;
+};
+
+class LoxClass : public Callable
+{
+public:
+    LoxClass(ClassStmt* stmt, PEnvironment enclosing)
+    {
+        cname = stmt->name;
+        for (auto& f : stmt->methods)
+        {
+            methods.emplace_back(std::make_shared<LoxFunction>(f.get(), enclosing));
+        }
+    }
+    ~LoxClass() {}
+    size_t arity() const override { return 0; }
+    LoxObject operator()(Interpreter& in, Arguments args) override;
+    std::string name() const override { return cname.lexeme; }
+private:
+    friend class LoxInstance;
+    std::vector<std::shared_ptr<LoxFunction>> methods;
+    Token cname;
+};
+
+class LoxInstance
+{
+public:
+    LoxInstance(LoxClass& lc)
+    {
+        methods = lc.methods;
+        cname = lc.cname;
+    }
+    std::string name()
+    {
+        return cname.lexeme;
+    }
+    LoxObject get(Token pname)
+    {
+        auto var = properties.find(pname.lexeme);
+        if (var != properties.end())
+        {
+            return var->second;
+        }
+        throw LoxError("Could not find " + pname.lexeme + ".");
+    }
+    LoxObject set(Token pname, LoxObject value)
+    {
+        return properties[pname.lexeme] = value;
+    }
+private:
+    std::map<std::string, LoxObject> properties;
+    std::vector<std::shared_ptr<LoxFunction>> methods;
+    Token cname;
 };
 
 #endif // CALLABLE_HPP_INCLUDED

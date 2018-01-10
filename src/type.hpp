@@ -7,10 +7,10 @@
 
 enum class Type
 {
-    AssignExpr, BinExpr, CallExpr, GroupExpr, LitExpr, LogicExpr,
-    UnaryExpr, VarExpr,
-    BlockStmt, ExprStmt, FunctionStmt, IfStmt, PrintStmt, ReturnStmt,
-    VarStmt, WhileStmt
+    AssignExpr, BinExpr, CallExpr, GetExpr, GroupExpr, LitExpr, LogicExpr,
+    SetExpr, UnaryExpr, VarExpr,
+    BlockStmt, ClassStmt, ExprStmt, FunctionStmt, IfStmt, PrintStmt, ReturnStmt,
+    VarStmt, WhileStmt,
 };
 
 inline std::ostream& operator<<(std::ostream& ost, Type t)
@@ -20,12 +20,15 @@ inline std::ostream& operator<<(std::ostream& ost, Type t)
     case Type::AssignExpr: ost << "AssignExpr"; return ost;
     case Type::BinExpr: ost << "BinExpr"; return ost;
     case Type::CallExpr: ost << "CallExpr"; return ost;
+    case Type::GetExpr: ost << "GetExpr"; return ost;
     case Type::GroupExpr: ost << "GroupExpr"; return ost;
     case Type::LitExpr: ost << "LitExpr"; return ost;
     case Type::LogicExpr: ost << "LogicExpr"; return ost;
+    case Type::SetExpr: ost << "SetExpr"; return ost;
     case Type::UnaryExpr: ost << "UnaryExpr"; return ost;
     case Type::VarExpr: ost << "VarExpr"; return ost;
     case Type::BlockStmt: ost << "BlockStmt"; return ost;
+    case Type::ClassStmt: ost << "ClassStmt"; return ost;
     case Type::ExprStmt: ost << "ExprStmt"; return ost;
     case Type::FunctionStmt: ost << "FunctionStmt"; return ost;
     case Type::IfStmt: ost << "IfStmt"; return ost;
@@ -62,6 +65,9 @@ public:
     ExprRetType visitCallExpr(CallExpr&) override
     { m_type = Type::CallExpr; return LoxObject(); }
 
+    ExprRetType visitGetExpr(GetExpr&) override
+    { m_type = Type::GetExpr; return LoxObject(); }
+
     ExprRetType visitGroupingExpr(GroupingExpr&) override
     { m_type = Type::GroupExpr; return LoxObject(); }
 
@@ -71,6 +77,9 @@ public:
     ExprRetType visitLogicalExpr(LogicalExpr&) override
     { m_type = Type::LogicExpr; return LoxObject(); }
 
+    ExprRetType visitSetExpr(SetExpr&) override
+    { m_type = Type::SetExpr; return LoxObject(); }
+
     ExprRetType visitUnaryExpr(UnaryExpr&) override
     { m_type = Type::UnaryExpr; return LoxObject(); }
 
@@ -79,6 +88,9 @@ public:
 
     StmtRetType visitBlockStmt(BlockStmt&) override
     { m_type = Type::BlockStmt; }
+
+    StmtRetType visitClassStmt(ClassStmt&) override
+    { m_type = Type::ClassStmt; }
 
     StmtRetType visitExpressionStmt(ExpressionStmt&) override
     { m_type = Type::ExprStmt; }

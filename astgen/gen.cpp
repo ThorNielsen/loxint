@@ -201,9 +201,11 @@ int main()
     types.push_back("Assignment | Token name; Expr* val");
     types.push_back("Binary     | Expr* left; Token oper; Expr* right");
     types.push_back("Call       | Expr* callee; Token paren; std::vector<std::unique_ptr<Expr>>' args");
+    types.push_back("Get        | Expr* object; Token name");
     types.push_back("Grouping   | Expr* expr");
     types.push_back("Literal    | LoxObject value");
     types.push_back("Logical    | Expr* left; Token oper; Expr* right");
+    types.push_back("Set        | Expr* object; Token name; Expr* value");
     types.push_back("Unary      | Token oper; Expr* right");
     types.push_back("Variable   | Token name");
 
@@ -224,6 +226,7 @@ int main()
 
 
     types.push_back("Block      | std::vector<std::unique_ptr<Stmt>>' statements");
+    types.push_back("Class      | Token name; std::vector<std::unique_ptr<FunctionStmt>>' methods");
     types.push_back("Expression | Expr* expr");
     types.push_back("Function   | Token name; std::vector<Token> params; BlockStmt* statements");
     types.push_back("If         | Expr* cond; Stmt* thenBranch; Stmt* elseBranch");

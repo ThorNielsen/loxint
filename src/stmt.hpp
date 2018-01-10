@@ -12,6 +12,7 @@
 using StmtRetType = void;
 
 class BlockStmt;
+class ClassStmt;
 class ExpressionStmt;
 class FunctionStmt;
 class IfStmt;
@@ -24,6 +25,7 @@ class StmtVisitor
 {
 public:
     virtual StmtRetType visitBlockStmt(BlockStmt&) = 0;
+    virtual StmtRetType visitClassStmt(ClassStmt&) = 0;
     virtual StmtRetType visitExpressionStmt(ExpressionStmt&) = 0;
     virtual StmtRetType visitFunctionStmt(FunctionStmt&) = 0;
     virtual StmtRetType visitIfStmt(IfStmt&) = 0;
@@ -54,6 +56,24 @@ public:
     }
 
     std::vector<std::unique_ptr<Stmt>> statements;
+};
+
+class ClassStmt : public Stmt
+{
+public:
+    ClassStmt(Token name_, std::vector<std::unique_ptr<FunctionStmt>>&& methods_)
+    {
+        name = name_;
+        methods = std::move(methods_);
+    }
+
+    StmtRetType accept(StmtVisitor& v) override
+    {
+        v.visitClassStmt(*this);
+    }
+
+    Token name;
+    std::vector<std::unique_ptr<FunctionStmt>> methods;
 };
 
 class ExpressionStmt : public Stmt

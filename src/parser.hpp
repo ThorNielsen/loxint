@@ -52,6 +52,7 @@ private:
     {
         try
         {
+            if (match({TokenType::Class})) return classDeclaration();
             if (match({TokenType::Fun})) return function("function");
             if (match({TokenType::Var})) return varDeclaration();
             return statement();
@@ -66,6 +67,20 @@ private:
             else         std::cerr << "Parsing e" << e.substr(1) << "\n";
             return nullptr;
         }
+    }
+
+    PStmt classDeclaration()
+    {
+        Token name = consume(TokenType::Identifier, "Expected class name.");
+        consume(TokenType::LeftBrace, "Expect '{' before class definition.");
+        std::vector<std::unique_ptr<FunctionStmt>> methods;
+        while (!atEnd() && !isCurrentEqual(TokenType::RightBrace))
+        {
+            auto m = function("method");
+            methods.emplace_back(static_cast<FunctionStmt*>(m.release()));
+        }
+        consume(TokenType::RightBrace, "Expect '}' to end class definition.");
+        return PStmt(new ClassStmt(name, std::move(methods)));
     }
 
     PStmt function(std::string kind)
@@ -265,6 +280,11 @@ private:
                 Token name = static_cast<VariableExpr*>(left.get())->name;
                 return PExpr(new AssignmentExpr(name, std::move(val)));
             }
+            if (ti.identify(left.get()) == Type::GetExpr)
+            {
+                auto get = std::unique_ptr<GetExpr>(static_cast<GetExpr*>(left.release()));
+                return PExpr(new SetExpr(std::move(get->object), get->name, std::move(val)));
+            }
             throw LoxError(error(previous().line,
                                  "Invalid assignment target."));
         }
@@ -351,9 +371,22 @@ private:
     PExpr call()
     {
         PExpr expr = primary();
-        while (match({TokenType::LeftParen}))
+        while (true)
         {
-            expr = finishCall(std::move(expr));
+            if (match({TokenType::LeftParen}))
+            {
+                expr = finishCall(std::move(expr));
+            }
+            else if (match({TokenType::Dot}))
+            {
+                Token name = consume(TokenType::Identifier,
+                                     "Expected property name after '.'.");
+                expr = PExpr(new GetExpr(std::move(expr), name));
+            }
+            else
+            {
+                break;
+            }
         }
         return expr;
     }

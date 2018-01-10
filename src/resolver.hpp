@@ -44,6 +44,11 @@ public:
         }
         popScope();
     }
+    StmtRetType visitClassStmt(ClassStmt& cs) override
+    {
+        declare(cs.name);
+        define(cs.name);
+    }
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
     {
         resolve(es.expr);
@@ -101,14 +106,20 @@ public:
         return "";
     }
 
-    ExprRetType visitCallExpr(CallExpr& cs) override
+    ExprRetType visitCallExpr(CallExpr& ce) override
     {
-        resolve(cs.callee);
+        resolve(ce.callee);
 
-        for (auto& arg : cs.args)
+        for (auto& arg : ce.args)
         {
             resolve(arg);
         }
+        return "";
+    }
+
+    ExprRetType visitGetExpr(GetExpr& ge) override
+    {
+        resolve(ge.object);
         return "";
     }
 
@@ -127,6 +138,13 @@ public:
     {
         resolve(ls.left);
         resolve(ls.right);
+        return "";
+    }
+
+    ExprRetType visitSetExpr(SetExpr& se) override
+    {
+        resolve(se.value);
+        resolve(se.object);
         return "";
     }
 

@@ -7,7 +7,7 @@
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 
 LoxObject::LoxObject(Token tok)
-    : string{}, function{}, number{}, type{}, boolean{}
+    : string{}, function{}, classy{}, number{}, type{}, boolean{}
 {
     switch (tok.type)
     {
@@ -41,6 +41,17 @@ LoxObject::LoxObject(Token tok)
 
 LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject> args)
 {
+    if (type == LoxType::Class)
+    {
+        if (args.size() != classy->arity())
+        {
+            std::string msg = "Function argument count mismatch. Expected "
+                + std::to_string(classy->arity()) + ", got "
+                + std::to_string(args.size()) + "\n";
+            throw LoxError(msg);
+        }
+        return (*classy)(interpreter, args);
+    }
     if (type != LoxType::Callable)
     {
         std::cout << (int)type << std::endl;
@@ -55,6 +66,25 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
     }
     return (*function)(interpreter, args);
 }
+
+LoxObject LoxObject::get(Token name)
+{
+    if (type != LoxType::Instance)
+    {
+        throw LoxError("Cannot get property from non-class instance.");
+    }
+    return instance->get(name);
+}
+
+LoxObject LoxObject::set(Token name, LoxObject value)
+{
+    if (type != LoxType::Instance)
+    {
+        throw LoxError("Cannot set property on non-class instance.");
+    }
+    return instance->set(name, value);
+}
+
 
 
 LoxObject::operator std::string() const
@@ -73,6 +103,10 @@ LoxObject::operator std::string() const
     case LoxType::String: return string;
     case LoxType::Callable:
         return "<fun " + function->name() + ">";
+    case LoxType::Class:
+        return "<class " + classy->name() + ">";
+    case LoxType::Instance:
+        return "<instance " + instance->name() + ">";
     }
     throw LoxError("Could not convert object to string.");
 }
@@ -96,6 +130,8 @@ LoxObject::operator double() const
         return num;
     }
     case LoxType::Callable:
+    case LoxType::Class:
+    case LoxType::Instance:
         // Yes, converting a function (or other callable) to a number makes
         // sense. Or not.
         break;
@@ -111,10 +147,9 @@ LoxObject::operator bool() const
     case LoxType::Bool:   return boolean;
     case LoxType::Number: return number != 0.;
     case LoxType::String: return string != "";
-    case LoxType::Callable:
-        // Is a function truthy? Or falsey? What about () -> false or
-        // () -> true?
-        break;
+    case LoxType::Callable: return true; // Callables and classe are
+    case LoxType::Class: return true; // automatically true by definition.
+    case LoxType::Instance: return true;
     }
     throw LoxError("Could not convert object to bool.");
 }

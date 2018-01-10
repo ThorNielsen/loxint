@@ -12,9 +12,11 @@ using ExprRetType = LoxObject;
 class AssignmentExpr;
 class BinaryExpr;
 class CallExpr;
+class GetExpr;
 class GroupingExpr;
 class LiteralExpr;
 class LogicalExpr;
+class SetExpr;
 class UnaryExpr;
 class VariableExpr;
 
@@ -24,9 +26,11 @@ public:
     virtual ExprRetType visitAssignmentExpr(AssignmentExpr&) = 0;
     virtual ExprRetType visitBinaryExpr(BinaryExpr&) = 0;
     virtual ExprRetType visitCallExpr(CallExpr&) = 0;
+    virtual ExprRetType visitGetExpr(GetExpr&) = 0;
     virtual ExprRetType visitGroupingExpr(GroupingExpr&) = 0;
     virtual ExprRetType visitLiteralExpr(LiteralExpr&) = 0;
     virtual ExprRetType visitLogicalExpr(LogicalExpr&) = 0;
+    virtual ExprRetType visitSetExpr(SetExpr&) = 0;
     virtual ExprRetType visitUnaryExpr(UnaryExpr&) = 0;
     virtual ExprRetType visitVariableExpr(VariableExpr&) = 0;
 };
@@ -96,6 +100,24 @@ public:
     std::vector<std::unique_ptr<Expr>> args;
 };
 
+class GetExpr : public Expr
+{
+public:
+    GetExpr(std::unique_ptr<Expr>&& object_, Token name_)
+    {
+        object = std::move(object_);
+        name = name_;
+    }
+
+    ExprRetType accept(ExprVisitor& v) override
+    {
+        return v.visitGetExpr(*this);
+    }
+
+    std::unique_ptr<Expr> object;
+    Token name;
+};
+
 class GroupingExpr : public Expr
 {
 public:
@@ -146,6 +168,26 @@ public:
     std::unique_ptr<Expr> left;
     Token oper;
     std::unique_ptr<Expr> right;
+};
+
+class SetExpr : public Expr
+{
+public:
+    SetExpr(std::unique_ptr<Expr>&& object_, Token name_, std::unique_ptr<Expr>&& value_)
+    {
+        object = std::move(object_);
+        name = name_;
+        value = std::move(value_);
+    }
+
+    ExprRetType accept(ExprVisitor& v) override
+    {
+        return v.visitSetExpr(*this);
+    }
+
+    std::unique_ptr<Expr> object;
+    Token name;
+    std::unique_ptr<Expr> value;
 };
 
 class UnaryExpr : public Expr

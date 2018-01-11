@@ -8,7 +8,7 @@
 enum class Type
 {
     AssignExpr, BinExpr, CallExpr, GetExpr, GroupExpr, LitExpr, LogicExpr,
-    SetExpr, UnaryExpr, VarExpr,
+    SetExpr, ThisExpr, UnaryExpr, VarExpr,
     BlockStmt, ClassStmt, ExprStmt, FunctionStmt, IfStmt, PrintStmt, ReturnStmt,
     VarStmt, WhileStmt,
 };
@@ -17,25 +17,26 @@ inline std::ostream& operator<<(std::ostream& ost, Type t)
 {
     switch (t)
     {
-    case Type::AssignExpr: ost << "AssignExpr"; return ost;
-    case Type::BinExpr: ost << "BinExpr"; return ost;
-    case Type::CallExpr: ost << "CallExpr"; return ost;
-    case Type::GetExpr: ost << "GetExpr"; return ost;
-    case Type::GroupExpr: ost << "GroupExpr"; return ost;
-    case Type::LitExpr: ost << "LitExpr"; return ost;
-    case Type::LogicExpr: ost << "LogicExpr"; return ost;
-    case Type::SetExpr: ost << "SetExpr"; return ost;
-    case Type::UnaryExpr: ost << "UnaryExpr"; return ost;
-    case Type::VarExpr: ost << "VarExpr"; return ost;
-    case Type::BlockStmt: ost << "BlockStmt"; return ost;
-    case Type::ClassStmt: ost << "ClassStmt"; return ost;
-    case Type::ExprStmt: ost << "ExprStmt"; return ost;
-    case Type::FunctionStmt: ost << "FunctionStmt"; return ost;
-    case Type::IfStmt: ost << "IfStmt"; return ost;
-    case Type::PrintStmt: ost << "PrintStmt"; return ost;
-    case Type::ReturnStmt: ost << "ReturnStmt"; return ost;
-    case Type::VarStmt: ost << "VarStmt"; return ost;
-    case Type::WhileStmt: ost << "WhileStmt"; return ost;
+    case Type::AssignExpr:   return ost << "AssignExpr";
+    case Type::BinExpr:      return ost << "BinExpr";
+    case Type::CallExpr:     return ost << "CallExpr";
+    case Type::GetExpr:      return ost << "GetExpr";
+    case Type::GroupExpr:    return ost << "GroupExpr";
+    case Type::LitExpr:      return ost << "LitExpr";
+    case Type::LogicExpr:    return ost << "LogicExpr";
+    case Type::SetExpr:      return ost << "SetExpr";
+    case Type::ThisExpr:     return ost << "ThisExpr";
+    case Type::UnaryExpr:    return ost << "UnaryExpr";
+    case Type::VarExpr:      return ost << "VarExpr";
+    case Type::BlockStmt:    return ost << "BlockStmt";
+    case Type::ClassStmt:    return ost << "ClassStmt";
+    case Type::ExprStmt:     return ost << "ExprStmt";
+    case Type::FunctionStmt: return ost << "FunctionStmt";
+    case Type::IfStmt:       return ost << "IfStmt";
+    case Type::PrintStmt:    return ost << "PrintStmt";
+    case Type::ReturnStmt:   return ost << "ReturnStmt";
+    case Type::VarStmt:      return ost << "VarStmt";
+    case Type::WhileStmt:    return ost << "WhileStmt";
     }
     return ost;
 }
@@ -79,6 +80,9 @@ public:
 
     ExprRetType visitSetExpr(SetExpr&) override
     { m_type = Type::SetExpr; return LoxObject(); }
+
+    ExprRetType visitThisExpr(ThisExpr&) override
+    { m_type = Type::ThisExpr; return LoxObject(); }
 
     ExprRetType visitUnaryExpr(UnaryExpr&) override
     { m_type = Type::UnaryExpr; return LoxObject(); }

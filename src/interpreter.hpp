@@ -152,6 +152,11 @@ public:
         return se.object->accept(*this).set(se.name, se.value->accept(*this));
     }
 
+    ExprRetType visitThisExpr(ThisExpr& te) override
+    {
+        return getVariable(te.keyword, &te);
+    }
+
     ExprRetType visitUnaryExpr(UnaryExpr&) override;
 
     ExprRetType visitVariableExpr(VariableExpr& ve) override

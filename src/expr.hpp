@@ -17,6 +17,7 @@ class GroupingExpr;
 class LiteralExpr;
 class LogicalExpr;
 class SetExpr;
+class ThisExpr;
 class UnaryExpr;
 class VariableExpr;
 
@@ -31,6 +32,7 @@ public:
     virtual ExprRetType visitLiteralExpr(LiteralExpr&) = 0;
     virtual ExprRetType visitLogicalExpr(LogicalExpr&) = 0;
     virtual ExprRetType visitSetExpr(SetExpr&) = 0;
+    virtual ExprRetType visitThisExpr(ThisExpr&) = 0;
     virtual ExprRetType visitUnaryExpr(UnaryExpr&) = 0;
     virtual ExprRetType visitVariableExpr(VariableExpr&) = 0;
 };
@@ -188,6 +190,22 @@ public:
     std::unique_ptr<Expr> object;
     Token name;
     std::unique_ptr<Expr> value;
+};
+
+class ThisExpr : public Expr
+{
+public:
+    ThisExpr(Token keyword_)
+    {
+        keyword = keyword_;
+    }
+
+    ExprRetType accept(ExprVisitor& v) override
+    {
+        return v.visitThisExpr(*this);
+    }
+
+    Token keyword;
 };
 
 class UnaryExpr : public Expr

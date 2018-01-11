@@ -398,6 +398,10 @@ private:
         {
             return PExpr(new LiteralExpr(previous()));
         }
+        if (match({TokenType::This}))
+        {
+            return PExpr(new ThisExpr(previous()));
+        }
         if (match({TokenType::Identifier}))
         {
             return PExpr(new VariableExpr(previous()));

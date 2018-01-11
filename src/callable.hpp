@@ -48,12 +48,21 @@ public:
     // Warning: This stores a non-owning pointer to the function declaration
     // statements. These must continue to be available for as long as this
     // object lives.
-    LoxFunction(FunctionStmt* stmt, PEnvironment enclosing)
+    LoxFunction(FunctionStmt* stmt, PEnvironment enclosing, bool init = false)
     {
         fname = stmt->name;
         params = stmt->params;
         statements = stmt->statements.get();
         closure = enclosing;
+        initialiser = init;
+    }
+    LoxFunction(LoxFunction& other, PEnvironment enclosing)
+    {
+        fname = other.fname;
+        params = other.params;
+        statements = other.statements;
+        closure = enclosing;
+        initialiser = other.initialiser;
     }
 
     ~LoxFunction() { }
@@ -63,10 +72,12 @@ public:
     LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return fname.lexeme; }
 private:
+    friend class LoxInstance;
     PEnvironment closure;
     Token fname;
     std::vector<Token> params;
     BlockStmt* statements;
+    bool initialiser;
 };
 
 class LoxClass : public Callable
@@ -77,16 +88,26 @@ public:
         cname = stmt->name;
         for (auto& f : stmt->methods)
         {
-            methods.emplace_back(std::make_shared<LoxFunction>(f.get(), enclosing));
+            auto func = std::make_shared<LoxFunction>(f.get(), enclosing,
+                                                      f->name.lexeme == "init");
+            methods[f->name.lexeme] = func;
         }
     }
     ~LoxClass() {}
-    size_t arity() const override { return 0; }
+    size_t arity() const override
+    {
+        auto method = methods.find("init");
+        if (method != methods.end())
+        {
+            return method->second->arity();
+        }
+        return 0;
+    }
     LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return cname.lexeme; }
 private:
     friend class LoxInstance;
-    std::vector<std::shared_ptr<LoxFunction>> methods;
+    std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     Token cname;
 };
 
@@ -94,42 +115,34 @@ class LoxInstance
 {
 public:
     LoxInstance(LoxClass& lc)
-    {
-        for (auto method : lc.methods)
-        {
-            methods[method->name()] = method;
-        }
-        cname = lc.cname;
-    }
+        : methods(lc.methods), properties{}, cname(lc.cname) { }
     std::string name()
     {
         return cname.lexeme;
     }
-    LoxObject get(Token pname)
+    LoxObject get(Token pname, std::shared_ptr<LoxInstance> thisInstance)
     {
         auto var = properties.find(pname.lexeme);
         if (var != properties.end())
         {
             return var->second;
         }
-        auto method = methods.find(pname.lexeme);
-        if (method != methods.end())
+        auto func = methods.find(pname.lexeme);
+        if (func != methods.end())
         {
-            return LoxObject(method->second);
+            PEnvironment env = std::make_shared<Environment>(func->second->closure);
+            env->assign("this", thisInstance);
+            return LoxObject(std::make_shared<LoxFunction>(*func->second, env));
         }
         throw LoxError("Could not find " + pname.lexeme + ".");
     }
     LoxObject set(Token pname, LoxObject value)
     {
-        if (methods.find(pname.lexeme) != methods.end())
-        {
-            throw LoxError("Cannot assign to method " + pname.lexeme + ".");
-        }
         return properties[pname.lexeme] = value;
     }
 private:
+    const std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     std::map<std::string, LoxObject> properties;
-    std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     Token cname;
 };
 

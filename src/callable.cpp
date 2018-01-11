@@ -22,10 +22,16 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
     {
         return lo;
     }
+    if (initialiser) return closure->get(0, "this");
     return LoxObject();
 }
 
-LoxObject LoxClass::operator()(Interpreter&, Arguments)
+LoxObject LoxClass::operator()(Interpreter& in, Arguments args)
 {
-    return std::make_shared<LoxInstance>(*this);
+    auto instance = std::make_shared<LoxInstance>(*this);
+    if (methods.find("init") != methods.end())
+    {
+        instance->get({"init", TokenType::Identifier, 0}, instance)(in, args);
+    }
+    return instance;
 }

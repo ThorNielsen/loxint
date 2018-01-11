@@ -54,7 +54,6 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
     }
     if (type != LoxType::Callable)
     {
-        std::cout << (int)type << std::endl;
         throw LoxError("Cannot call non-callable.");
     }
     if (args.size() != function->arity())
@@ -73,7 +72,7 @@ LoxObject LoxObject::get(Token name)
     {
         throw LoxError("Cannot get property from non-class instance.");
     }
-    return instance->get(name);
+    return instance->get(name, instance);
 }
 
 LoxObject LoxObject::set(Token name, LoxObject value)

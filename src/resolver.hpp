@@ -18,6 +18,7 @@ public:
     {
         interpreter = &in;
         m_ftype = FunctionType::None;
+        m_ctype = ClassType::None;
         try
         {
             for (auto& stmt : stmts)
@@ -48,6 +49,24 @@ public:
     {
         declare(cs.name);
         define(cs.name);
+
+        ClassType encctype = m_ctype;
+        m_ctype = ClassType::Class;
+
+        pushScope();
+        m_names.back()["this"] = true;
+        for (auto& method : cs.methods)
+        {
+            FunctionType declType = FunctionType::Method;
+            if (method->name.lexeme == "init")
+            {
+                declType = FunctionType::Initialiser;
+            }
+            resolveFunction(*method, declType);
+        }
+        popScope();
+
+        m_ctype = encctype;
     }
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
     {
@@ -75,7 +94,15 @@ public:
         {
             throwError(rs.keyword.line, "Cannot return from top-level code.");
         }
-        if (rs.value != nullptr) resolve(rs.value);
+        if (rs.value != nullptr)
+        {
+            if (m_ftype == FunctionType::Initialiser)
+            {
+                throwError(rs.keyword.line,
+                           "Cannot return a value from an initialiser.");
+            }
+            resolve(rs.value);
+        }
     }
     StmtRetType visitWhileStmt(WhileStmt& ws) override
     {
@@ -148,6 +175,17 @@ public:
         return "";
     }
 
+    ExprRetType visitThisExpr(ThisExpr& te) override
+    {
+        if (m_ctype == ClassType::None)
+        {
+            throwError(te.keyword.line,
+                       "Cannot use 'this' outside of a class.");
+        }
+        resolveLocal(te, te.keyword);
+        return "";
+    }
+
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
         if (!m_names.empty()
@@ -169,7 +207,11 @@ public:
 private:
     enum class FunctionType
     {
-        None, Function,
+        None, Function, Method, Initialiser,
+    };
+    enum class ClassType
+    {
+        None, Class,
     };
     void resolveLocal(Expr& expr, Token name)
     {
@@ -247,6 +289,7 @@ private:
     std::vector<std::map<std::string, bool>> m_names;
     Interpreter* interpreter;
     FunctionType m_ftype;
+    ClassType m_ctype;
 };
 
 #endif // RESOLVER_HPP_INCLUDED

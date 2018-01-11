@@ -95,7 +95,10 @@ class LoxInstance
 public:
     LoxInstance(LoxClass& lc)
     {
-        methods = lc.methods;
+        for (auto method : lc.methods)
+        {
+            methods[method->name()] = method;
+        }
         cname = lc.cname;
     }
     std::string name()
@@ -109,15 +112,24 @@ public:
         {
             return var->second;
         }
+        auto method = methods.find(pname.lexeme);
+        if (method != methods.end())
+        {
+            return LoxObject(method->second);
+        }
         throw LoxError("Could not find " + pname.lexeme + ".");
     }
     LoxObject set(Token pname, LoxObject value)
     {
+        if (methods.find(pname.lexeme) != methods.end())
+        {
+            throw LoxError("Cannot assign to method " + pname.lexeme + ".");
+        }
         return properties[pname.lexeme] = value;
     }
 private:
     std::map<std::string, LoxObject> properties;
-    std::vector<std::shared_ptr<LoxFunction>> methods;
+    std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     Token cname;
 };
 

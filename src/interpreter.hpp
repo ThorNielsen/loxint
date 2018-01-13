@@ -60,7 +60,16 @@ public:
 
     StmtRetType visitClassStmt(ClassStmt& cs) override
     {
-        auto classy = std::make_shared<LoxClass>(&cs, m_env);
+        LoxObject super = nullptr;
+        if (cs.super != nullptr)
+        {
+            super = cs.super->accept(*this);
+            if (super.type != LoxType::Class)
+            {
+                throw LoxError("Superclass must be a class.");
+            }
+        }
+        auto classy = std::make_shared<LoxClass>(&cs, super.classy, m_env);
         m_env->assign(cs.name.lexeme, LoxObject(classy));
     }
 

@@ -61,9 +61,10 @@ public:
 class ClassStmt : public Stmt
 {
 public:
-    ClassStmt(Token name_, std::vector<std::unique_ptr<FunctionStmt>>&& methods_)
+    ClassStmt(Token name_, std::unique_ptr<Expr>&& super_, std::vector<std::unique_ptr<FunctionStmt>>&& methods_)
     {
         name = name_;
+        super = std::move(super_);
         methods = std::move(methods_);
     }
 
@@ -73,6 +74,7 @@ public:
     }
 
     Token name;
+    std::unique_ptr<Expr> super;
     std::vector<std::unique_ptr<FunctionStmt>> methods;
 };
 

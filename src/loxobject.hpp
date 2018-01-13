@@ -42,7 +42,7 @@ public:
 
     LoxObject(Token tok);
 
-    ~LoxObject() {}
+    ~LoxObject() { }
 
     LoxObject operator()(Interpreter&, std::vector<LoxObject> args);
 

@@ -53,6 +53,11 @@ public:
         ClassType encctype = m_ctype;
         m_ctype = ClassType::Class;
 
+        if (cs.super != nullptr)
+        {
+            resolve(cs.super);
+        }
+
         pushScope();
         m_names.back()["this"] = true;
         for (auto& method : cs.methods)

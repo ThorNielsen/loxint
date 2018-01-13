@@ -72,6 +72,12 @@ private:
     PStmt classDeclaration()
     {
         Token name = consume(TokenType::Identifier, "Expected class name.");
+        PExpr super = nullptr;
+        if (match({TokenType::Less}))
+        {
+            consume(TokenType::Identifier, "Expected superclass name.");
+            super = PExpr(new VariableExpr(previous()));
+        }
         consume(TokenType::LeftBrace, "Expect '{' before class definition.");
         std::vector<std::unique_ptr<FunctionStmt>> methods;
         while (!atEnd() && !isCurrentEqual(TokenType::RightBrace))
@@ -80,7 +86,7 @@ private:
             methods.emplace_back(static_cast<FunctionStmt*>(m.release()));
         }
         consume(TokenType::RightBrace, "Expect '}' to end class definition.");
-        return PStmt(new ClassStmt(name, std::move(methods)));
+        return PStmt(new ClassStmt(name, std::move(super), std::move(methods)));
     }
 
     PStmt function(std::string kind)

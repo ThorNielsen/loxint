@@ -227,7 +227,7 @@ int main()
 
 
     types.push_back("Block      | std::vector<std::unique_ptr<Stmt>>' statements");
-    types.push_back("Class      | Token name; std::vector<std::unique_ptr<FunctionStmt>>' methods");
+    types.push_back("Class      | Token name; Expr* super; std::vector<std::unique_ptr<FunctionStmt>>' methods");
     types.push_back("Expression | Expr* expr");
     types.push_back("Function   | Token name; std::vector<Token> params; BlockStmt* statements");
     types.push_back("If         | Expr* cond; Stmt* thenBranch; Stmt* elseBranch");

@@ -72,6 +72,7 @@ public:
     LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return fname.lexeme; }
 private:
+    friend class LoxClass;
     friend class LoxInstance;
     PEnvironment closure;
     Token fname;
@@ -80,11 +81,20 @@ private:
     bool initialiser;
 };
 
+class LoxInstance;
+
 class LoxClass : public Callable
 {
 public:
-    LoxClass(ClassStmt* stmt, PEnvironment enclosing)
+    LoxClass(ClassStmt* stmt, std::shared_ptr<LoxClass> superclass,
+             PEnvironment enclosing)
     {
+        instances = 0;
+        if (superclass.get() == this)
+        {
+            throw std::logic_error("Trying to make a class a subclass of itself");
+        }
+        super = superclass;
         cname = stmt->name;
         for (auto& f : stmt->methods)
         {
@@ -93,7 +103,14 @@ public:
             methods[f->name.lexeme] = func;
         }
     }
-    ~LoxClass() {}
+    ~LoxClass()
+    {
+        if (instances)
+        {
+            std::cerr << instances << " instances of " << name() << " left!\n";
+            throw std::logic_error("Deleted class before its instances.");
+        }
+    }
     size_t arity() const override
     {
         auto method = methods.find("init");
@@ -107,15 +124,40 @@ public:
     std::string name() const override { return cname.lexeme; }
 private:
     friend class LoxInstance;
+
+    LoxObject function(Token pname, std::shared_ptr<LoxInstance> thisInstance)
+    {
+        auto func = methods.find(pname.lexeme);
+        if (func != methods.end())
+        {
+            PEnvironment env = std::make_shared<Environment>(func->second->closure);
+            env->assign("this", thisInstance);
+            return LoxObject(std::make_shared<LoxFunction>(*func->second, env));
+        }
+        if (super) return super->function(pname, thisInstance);
+        throw LoxError("Could not find " + pname.lexeme + ".");
+    }
+
+    void registerInstance() { ++instances; }
+    void removeInstance() { --instances; }
+    std::shared_ptr<LoxClass> super;
     std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     Token cname;
+    size_t instances;
 };
 
 class LoxInstance
 {
 public:
     LoxInstance(LoxClass& lc)
-        : methods(lc.methods), properties{}, cname(lc.cname) { }
+        : properties{}, cname(lc.cname), classy{&lc}
+    {
+        classy->registerInstance();
+    }
+    ~LoxInstance()
+    {
+        classy->removeInstance();
+    }
     std::string name()
     {
         return cname.lexeme;
@@ -127,23 +169,16 @@ public:
         {
             return var->second;
         }
-        auto func = methods.find(pname.lexeme);
-        if (func != methods.end())
-        {
-            PEnvironment env = std::make_shared<Environment>(func->second->closure);
-            env->assign("this", thisInstance);
-            return LoxObject(std::make_shared<LoxFunction>(*func->second, env));
-        }
-        throw LoxError("Could not find " + pname.lexeme + ".");
+        return classy->function(pname, thisInstance);
     }
     LoxObject set(Token pname, LoxObject value)
     {
         return properties[pname.lexeme] = value;
     }
 private:
-    const std::map<std::string, std::shared_ptr<LoxFunction>> methods;
     std::map<std::string, LoxObject> properties;
     Token cname;
+    LoxClass* classy;
 };
 
 #endif // CALLABLE_HPP_INCLUDED

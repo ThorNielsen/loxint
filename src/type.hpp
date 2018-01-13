@@ -8,7 +8,7 @@
 enum class Type
 {
     AssignExpr, BinExpr, CallExpr, GetExpr, GroupExpr, LitExpr, LogicExpr,
-    SetExpr, ThisExpr, UnaryExpr, VarExpr,
+    SetExpr, SuperExpr, ThisExpr, UnaryExpr, VarExpr,
     BlockStmt, ClassStmt, ExprStmt, FunctionStmt, IfStmt, PrintStmt, ReturnStmt,
     VarStmt, WhileStmt,
 };
@@ -25,6 +25,7 @@ inline std::ostream& operator<<(std::ostream& ost, Type t)
     case Type::LitExpr:      return ost << "LitExpr";
     case Type::LogicExpr:    return ost << "LogicExpr";
     case Type::SetExpr:      return ost << "SetExpr";
+    case Type::SuperExpr:    return ost << "SuperExpr";
     case Type::ThisExpr:     return ost << "ThisExpr";
     case Type::UnaryExpr:    return ost << "UnaryExpr";
     case Type::VarExpr:      return ost << "VarExpr";
@@ -80,6 +81,9 @@ public:
 
     ExprRetType visitSetExpr(SetExpr&) override
     { m_type = Type::SetExpr; return LoxObject(); }
+
+    ExprRetType visitSuperExpr(SuperExpr&) override
+    { m_type = Type::SuperExpr; return LoxObject(); }
 
     ExprRetType visitThisExpr(ThisExpr&) override
     { m_type = Type::ThisExpr; return LoxObject(); }

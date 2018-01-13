@@ -55,7 +55,10 @@ public:
 
         if (cs.super != nullptr)
         {
+            m_ctype = ClassType::Subclass;
             resolve(cs.super);
+            pushScope();
+            m_names.back()["super"] = true;
         }
 
         pushScope();
@@ -71,6 +74,7 @@ public:
         }
         popScope();
 
+        if (cs.super != nullptr) popScope();
         m_ctype = encctype;
     }
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
@@ -180,6 +184,22 @@ public:
         return "";
     }
 
+    ExprRetType visitSuperExpr(SuperExpr& se) override
+    {
+        if (m_ctype == ClassType::None)
+        {
+            throwError(se.keyword.line,
+                       "Cannot use 'super' outside a class.");
+        }
+        if (m_ctype != ClassType::Subclass)
+        {
+            throwError(se.keyword.line,
+                       "Cannot use 'super' in a class without a superclass.");
+        }
+        resolveLocal(se, se.keyword);
+        return "";
+    }
+
     ExprRetType visitThisExpr(ThisExpr& te) override
     {
         if (m_ctype == ClassType::None)
@@ -216,7 +236,7 @@ private:
     };
     enum class ClassType
     {
-        None, Class,
+        None, Class, Subclass
     };
     void resolveLocal(Expr& expr, Token name)
     {

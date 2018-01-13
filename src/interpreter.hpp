@@ -68,8 +68,14 @@ public:
             {
                 throw LoxError("Superclass must be a class.");
             }
+            m_env = Environment::createNew(m_env);
+            m_env->assign("super", super);
         }
         auto classy = std::make_shared<LoxClass>(&cs, super.classy, m_env);
+        if (cs.super != nullptr)
+        {
+            m_env = m_env->enclosing;
+        }
         m_env->assign(cs.name.lexeme, LoxObject(classy));
     }
 
@@ -159,6 +165,13 @@ public:
     ExprRetType visitSetExpr(SetExpr& se) override
     {
         return se.object->accept(*this).set(se.name, se.value->accept(*this));
+    }
+
+    ExprRetType visitSuperExpr(SuperExpr& se) override
+    {
+        auto super = m_env->get(m_locals[&se], "super").classy;
+        auto object = m_env->get(m_locals[&se]-1, "this").instance;
+        return super->function(se.method, object);
     }
 
     ExprRetType visitThisExpr(ThisExpr& te) override

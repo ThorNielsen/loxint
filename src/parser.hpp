@@ -404,6 +404,15 @@ private:
         {
             return PExpr(new LiteralExpr(previous()));
         }
+        if (match({TokenType::Super}))
+        {
+            Token keyword = previous();
+            consume(TokenType::Dot, "Expected '.' after 'super' keyword.");
+            Token method = consume(TokenType::Identifier,
+                                   "Expected superclass method name.");
+            return PExpr(new SuperExpr(keyword, method));
+
+        }
         if (match({TokenType::This}))
         {
             return PExpr(new ThisExpr(previous()));

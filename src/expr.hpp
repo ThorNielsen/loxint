@@ -18,6 +18,7 @@ class LiteralExpr;
 class LogicalExpr;
 class SetExpr;
 class ThisExpr;
+class SuperExpr;
 class UnaryExpr;
 class VariableExpr;
 
@@ -33,6 +34,7 @@ public:
     virtual ExprRetType visitLogicalExpr(LogicalExpr&) = 0;
     virtual ExprRetType visitSetExpr(SetExpr&) = 0;
     virtual ExprRetType visitThisExpr(ThisExpr&) = 0;
+    virtual ExprRetType visitSuperExpr(SuperExpr&) = 0;
     virtual ExprRetType visitUnaryExpr(UnaryExpr&) = 0;
     virtual ExprRetType visitVariableExpr(VariableExpr&) = 0;
 };
@@ -206,6 +208,24 @@ public:
     }
 
     Token keyword;
+};
+
+class SuperExpr : public Expr
+{
+public:
+    SuperExpr(Token keyword_, Token method_)
+    {
+        keyword = keyword_;
+        method = method_;
+    }
+
+    ExprRetType accept(ExprVisitor& v) override
+    {
+        return v.visitSuperExpr(*this);
+    }
+
+    Token keyword;
+    Token method;
 };
 
 class UnaryExpr : public Expr

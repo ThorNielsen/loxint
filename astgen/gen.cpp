@@ -207,6 +207,7 @@ int main()
     types.push_back("Logical    | Expr* left; Token oper; Expr* right");
     types.push_back("Set        | Expr* object; Token name; Expr* value");
     types.push_back("This       | Token keyword");
+    types.push_back("Super      | Token keyword; Token method");
     types.push_back("Unary      | Token oper; Expr* right");
     types.push_back("Variable   | Token name");
 

@@ -122,9 +122,6 @@ public:
     }
     LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return cname.lexeme; }
-private:
-    friend class LoxInstance;
-
     LoxObject function(Token pname, std::shared_ptr<LoxInstance> thisInstance)
     {
         auto func = methods.find(pname.lexeme);
@@ -137,6 +134,9 @@ private:
         if (super) return super->function(pname, thisInstance);
         throw LoxError("Could not find " + pname.lexeme + ".");
     }
+private:
+    friend class LoxInstance;
+
 
     void registerInstance() { ++instances; }
     void removeInstance() { --instances; }

@@ -16,7 +16,8 @@ class Callable
 public:
     virtual ~Callable() {}
     virtual size_t arity() const = 0;
-    virtual LoxObject operator()(Interpreter&, Arguments args) = 0;
+    virtual LoxObject operator()(Interpreter&, Arguments args,
+                                 std::shared_ptr<Callable> self) = 0;
     virtual std::string name() const = 0;
 };
 
@@ -30,7 +31,7 @@ public:
     }
     ~TimeFunction() {}
     size_t arity() const override { return 0; }
-    LoxObject operator()(Interpreter&, Arguments)
+    LoxObject operator()(Interpreter&, Arguments, std::shared_ptr<Callable>)
     {
         return std::chrono::duration<double>(Clock::now() - begin).count();
     }
@@ -50,14 +51,17 @@ public:
     // object lives.
     LoxFunction(FunctionStmt* stmt, PEnvironment enclosing, bool init = false)
     {
+        recCount = 0;
         fname = stmt->name;
         params = stmt->params;
         statements = stmt->statements.get();
-        closure = enclosing;
+        closure = enclosing->copy();
+        closure->remove(fname.lexeme);
         initialiser = init;
     }
     LoxFunction(LoxFunction& other, PEnvironment enclosing)
     {
+        recCount = 0;
         fname = other.fname;
         params = other.params;
         statements = other.statements;
@@ -69,7 +73,8 @@ public:
 
 
     size_t arity() const override { return params.size(); }
-    LoxObject operator()(Interpreter& in, Arguments args) override;
+    LoxObject operator()(Interpreter& in, Arguments args,
+                         std::shared_ptr<Callable>) override;
     std::string name() const override { return fname.lexeme; }
 private:
     friend class LoxClass;
@@ -78,6 +83,7 @@ private:
     Token fname;
     std::vector<Token> params;
     BlockStmt* statements;
+    size_t recCount;
     bool initialiser;
 };
 
@@ -120,7 +126,8 @@ public:
         }
         return 0;
     }
-    LoxObject operator()(Interpreter& in, Arguments args) override;
+    LoxObject operator()(Interpreter& in, Arguments args,
+                         std::shared_ptr<Callable>) override;
     std::string name() const override { return cname.lexeme; }
     LoxObject function(Token pname, std::shared_ptr<LoxInstance> thisInstance)
     {

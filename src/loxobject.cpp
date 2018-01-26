@@ -50,7 +50,7 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
                 + std::to_string(args.size()) + "\n";
             throw LoxError(msg);
         }
-        return (*classy)(interpreter, args);
+        return (*classy)(interpreter, args, classy);
     }
     if (type != LoxType::Callable)
     {
@@ -63,7 +63,7 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
             + std::to_string(args.size()) + "\n";
         throw LoxError(msg);
     }
-    return (*function)(interpreter, args);
+    return (*function)(interpreter, args, function);
 }
 
 LoxObject LoxObject::get(Token name)

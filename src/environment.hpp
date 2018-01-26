@@ -26,6 +26,12 @@ public:
         newEnv->m_vars = env->m_vars;
         return newEnv;
     }
+    PEnvironment copy()
+    {
+        auto newEnv = createNew(enclosing);
+        newEnv->m_vars = m_vars;
+        return newEnv;
+    }
     bool exists(std::string name)
     {
         if (m_vars.find(name) != m_vars.end()) return true;
@@ -65,6 +71,10 @@ public:
     void assign(std::string name, LoxObject lo)
     {
         m_vars[name] = lo;
+    }
+    void remove(std::string name)
+    {
+        m_vars.erase(name);
     }
     const PEnvironment enclosing;
 private:

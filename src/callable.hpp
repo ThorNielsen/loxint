@@ -111,11 +111,12 @@ public:
     }
     ~LoxClass()
     {
-        if (instances)
+        // Todo: Fix memory leak.
+        /*if (instances)
         {
             std::cerr << instances << " instances of " << name() << " left!\n";
             throw std::logic_error("Deleted class before its instances.");
-        }
+        }*/
     }
     size_t arity() const override
     {

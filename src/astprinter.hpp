@@ -19,6 +19,21 @@ public:
         }
         m_ast += ")";
     }
+    void visitClassStmt(ClassStmt& cs) override
+    {
+        m_ast += "(class " + cs.name.lexeme;
+        if (cs.super)
+        {
+            m_ast += " < ";
+            cs.super->accept(*this);
+        }
+        for (auto& func : cs.methods)
+        {
+            m_ast += " ";
+            func->accept(*this);
+        }
+        m_ast += ")";
+    }
     void visitExpressionStmt(ExpressionStmt& es) override
     {
         parenthesize(";", {es.expr.get()});
@@ -109,6 +124,13 @@ public:
         m_ast += ")";
         return "";
     }
+    ExprRetType visitGetExpr(GetExpr& ge) override
+    {
+        m_ast += "(. ";
+        ge.object->accept(*this);
+        m_ast += " " + ge.name.lexeme + ")";
+        return "";
+    }
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
         parenthesize("group", {grp.expr.get()});
@@ -122,6 +144,25 @@ public:
     ExprRetType visitLogicalExpr(LogicalExpr& le) override
     {
         parenthesize(le.oper.lexeme, {le.left.get(), le.right.get()});
+        return "";
+    }
+    ExprRetType visitSetExpr(SetExpr& se) override
+    {
+        m_ast += "(= ";
+        se.object->accept(*this);
+        m_ast += " " + se.name.lexeme + " ";
+        se.value->accept(*this);
+        m_ast += ")";
+        return "";
+    }
+    ExprRetType visitSuperExpr(SuperExpr& se) override
+    {
+        m_ast += "(super " + se.method.lexeme + ")";
+        return "";
+    }
+    ExprRetType visitThisExpr(ThisExpr&) override
+    {
+        m_ast += "this";
         return "";
     }
     ExprRetType visitUnaryExpr(UnaryExpr& un) override

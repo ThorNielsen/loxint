@@ -24,8 +24,11 @@ public:
     {
         m_globs = Environment::createNew(nullptr);
         m_env = m_globs;
-        auto clock = std::shared_ptr<Callable>(new TimeFunction());
-        m_globs->assign(clock->name(), clock);
+        std::unique_ptr<Callable> clock{static_cast<Callable*>(new TimeFunction())};
+        auto* loc = clock.get();
+        m_callables[loc] = std::move(clock);
+        m_calluse[loc] = 1;
+        m_globs->assign(clock->name(), loc);
     }
     ~Interpreter()
     {
@@ -85,7 +88,7 @@ public:
             m_env = Environment::createNew(m_env);
             m_env->assign("super", super);
         }
-        auto classy = make_unique<LoxClass>(&cs, this, super.classy.get(), m_env);
+        auto classy = make_unique<LoxClass>(&cs, this, super.classy, m_env);
         auto* ptr = classy.get();
         m_classes[ptr] = {std::move(classy), 0};
         m_derived[ptr] = {};
@@ -108,8 +111,11 @@ public:
         {
             throw LoxError("Function declaration has already been interpreted.");
         }
-        auto func = std::make_shared<LoxFunction>(&fs, this, m_env);
-        m_env->assign(fs.name.lexeme, LoxObject(func));
+        auto func = make_unique<LoxFunction>(&fs, this, m_env);
+        auto* loc = func.get();
+        m_callables[loc] = std::move(func);
+        m_calluse[loc] = 1;
+        m_env->assign(fs.name.lexeme, LoxObject(loc));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -275,6 +281,36 @@ public:
         }
     }
 
+    void addUser(Callable*)
+    {
+
+    }
+
+    void addUser(LoxClass*)
+    {
+
+    }
+
+    void addUser(LoxInstance*)
+    {
+
+    }
+
+    void removeUser(Callable*)
+    {
+
+    }
+
+    void removeUser(LoxClass*)
+    {
+
+    }
+
+    void removeUser(LoxInstance*)
+    {
+
+    }
+
 private:
     LoxObject& getVariable(Token name, Expr* expr)
     {
@@ -288,6 +324,12 @@ private:
     PEnvironment m_env;
     std::vector<std::unique_ptr<Stmt>> m_stmts;
     std::map<Expr*, size_t> m_locals;
+
+    std::map<Callable*, std::unique_ptr<Callable>> m_callables;
+    std::map<Callable*, size_t> m_calluse;
+
+
+
 
     std::map<LoxFunction*, PEnvironment> m_funcenvs;
 

@@ -60,10 +60,11 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 
 LoxObject LoxClass::operator()(Interpreter& in, Arguments args)
 {
-    auto instance = std::make_shared<LoxInstance>(*this);
-    if (methods.find("init") != methods.end())
+    auto instance = LoxInstance(*this);
+    /**if (methods.find("init") != methods.end())
     {
-        instance->get({"init", TokenType::Identifier, 0}, instance)(in, args);
-    }
-    return instance;
+        instance.get({"init", TokenType::Identifier, 0}, instance)(in, args);
+    }*/
+    (void)args;
+    return LoxObject(&instance, &in);
 }

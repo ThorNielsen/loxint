@@ -22,43 +22,27 @@ class Callable;
 class LoxClass;
 class LoxInstance;
 
-class LoxClassHolder
-{
-public:
-    LoxClassHolder() : interpreter{nullptr}, held{nullptr} {}
-    LoxClassHolder(Interpreter* intp, LoxClass* lc);
-    ~LoxClassHolder();
-    LoxClass* get() { return held; }
-    LoxClass* operator->() { return held; }
-    const LoxClass* operator->() const { return held; }
-    LoxClass& operator*() { return *held; }
-    const LoxClass& operator*() const { return *held; }
-private:
-    Interpreter* interpreter;
-    LoxClass* held;
-};
-
 class LoxObject
 {
 public:
     LoxObject()
-        : string{}, function{}, classy{}, instance{}, number{}, type{LoxType::Nil}, boolean{} {}
+        : type{LoxType::Nil} {}
     LoxObject(bool b)
-        : string{}, function{}, classy{}, instance{}, number{}, type{LoxType::Bool}, boolean{b} {}
+        : type{LoxType::Bool}, boolean{b} {}
     LoxObject(double num)
-        : string{}, function{}, classy{}, instance{}, number{num}, type{LoxType::Number}, boolean{} {}
+        : number{num}, type{LoxType::Number} {}
     LoxObject(std::string s)
-        : string{s}, function{}, classy{}, instance{}, number{}, type{LoxType::String}, boolean{} {}
-    LoxObject(std::shared_ptr<Callable> c)
-        : string{}, function{c}, classy{}, instance{}, number{}, type{LoxType::Callable}, boolean{} {}
-    LoxObject(Interpreter* intp, LoxClass* lc)
-        : string{}, function{}, classy{intp, lc}, instance{}, number{}, type{LoxType::Class}, boolean{} {}
-    LoxObject(std::shared_ptr<LoxInstance> li)
-        : string{}, function{}, classy{}, instance{li}, number{}, type{LoxType::Instance}, boolean{} {}
+        : string{s}, type{LoxType::String} {}
+    LoxObject(Callable* c, Interpreter* intp);
+    LoxObject(LoxClass* lc, Interpreter* intp);
+    LoxObject(LoxInstance* li, Interpreter* intp);
 
     LoxObject(Token tok);
 
-    ~LoxObject() { }
+    LoxObject(const LoxObject&);
+    LoxObject& operator=(const LoxObject&);
+
+    ~LoxObject();
 
     LoxObject operator()(Interpreter&, std::vector<LoxObject> args);
 
@@ -74,14 +58,17 @@ public:
     operator double() const;
     operator bool() const;
 
-    std::string string;
-    std::shared_ptr<Callable> function;
-    LoxClassHolder classy;
-    std::shared_ptr<LoxInstance> instance;
-    double number;
-    LoxType type;
-    bool boolean;
+    std::string string = "";
+    Callable* function = nullptr;
+    LoxClass* classy = nullptr;
+    LoxInstance* instance = nullptr;
+    Interpreter* interpreter = nullptr;
+    double number = 0.;
+    LoxType type = LoxType::Nil;
+    bool boolean = false;
+
 private:
+    void registerCopy();
     void cast(LoxType t)
     {
         if (t == type) return;

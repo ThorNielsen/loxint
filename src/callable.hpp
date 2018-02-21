@@ -74,8 +74,7 @@ class LoxInstance;
 class LoxClass
 {
 public:
-    LoxClass(ClassStmt* stmt, Interpreter* intp,
-             LoxClass* superclass,
+    LoxClass(ClassStmt* stmt, Interpreter* intp, LoxClass* superclass,
              PEnvironment enclosing)
     {
         if (superclass == this)
@@ -107,16 +106,16 @@ public:
     }
     LoxObject operator()(Interpreter& in, Arguments args);
     std::string name() const { return cname.lexeme; }
-    LoxObject function(Token pname, std::shared_ptr<LoxInstance> thisInstance)
+    LoxObject function(Token pname, LoxInstance* instance)
     {
         auto func = methods.find(pname.lexeme);
         if (func != methods.end())
         {
             PEnvironment env = std::make_shared<Environment>(func->second->closure);
-            env->assign("this", thisInstance);
-            return LoxObject(std::make_shared<LoxFunction>(*func->second, env));
+            env->assign("this", instance);
+            return LoxObject((LoxFunction*)nullptr);//LoxObject(std::make_shared<LoxFunction>(*func->second, env));
         }
-        if (super) return super->function(pname, thisInstance);
+        if (super) return super->function(pname, instance);
         throw LoxError("Could not find " + pname.lexeme + ".");
     }
 private:
@@ -143,14 +142,14 @@ public:
     {
         return cname.lexeme;
     }
-    LoxObject get(Token pname, std::shared_ptr<LoxInstance> thisInstance)
+    LoxObject get(Token pname)
     {
         auto var = properties.find(pname.lexeme);
         if (var != properties.end())
         {
             return var->second;
         }
-        return classy->function(pname, thisInstance);
+        return classy->function(pname, this);
     }
     LoxObject set(Token pname, LoxObject value)
     {

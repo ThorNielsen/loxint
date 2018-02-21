@@ -7,21 +7,82 @@
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 
-LoxClassHolder::LoxClassHolder(Interpreter* intp, LoxClass* lc)
+LoxObject::LoxObject(Callable* c, Interpreter* intp)
+    : function{c}, interpreter{intp}, type{LoxType::Callable}
 {
-    interpreter = intp;
-    held = lc;
-    interpreter->registerClass(held);
+    interpreter->addUser(function);
 }
 
-LoxClassHolder::~LoxClassHolder()
+LoxObject::LoxObject(LoxClass* lc, Interpreter* intp)
+    : classy{lc}, interpreter{intp}, type{LoxType::Class}
+{
+    interpreter->addUser(classy);
+}
+
+LoxObject::LoxObject(LoxInstance* li, Interpreter* intp)
+    : instance{li}, interpreter{intp}, type{LoxType::Instance}
+{
+    interpreter->addUser(instance);
+}
+
+LoxObject::LoxObject(const LoxObject& o)
+    : string{o.string}, function{o.function}, classy{o.classy},
+    instance{o.instance}, interpreter{o.interpreter}, number{o.number},
+    type{o.type}, boolean{o.boolean}
+{
+    if (interpreter) registerCopy();
+}
+
+LoxObject& LoxObject::operator=(const LoxObject& o)
+{
+    string = o.string; function = o.function; classy = o.classy;
+    instance = o.instance; interpreter = o.interpreter; number = o.number;
+    type = o.type; boolean = o.boolean;
+    if (interpreter) registerCopy();
+    return *this;
+}
+
+LoxObject::~LoxObject()
 {
     if (interpreter)
-        interpreter->deleteClass(held);
+    {
+        switch (type)
+        {
+        case LoxType::Callable:
+            interpreter->removeUser(function);
+            break;
+        case LoxType::Class:
+            interpreter->removeUser(classy);
+            break;
+        case LoxType::Instance:
+            interpreter->removeUser(instance);
+            break;
+        default:
+            throw std::logic_error("Lox object has bad type when destroyed.");
+        }
+    }
+
+}
+
+void LoxObject::registerCopy()
+{
+    switch (type)
+    {
+    case LoxType::Callable:
+        interpreter->addUser(function);
+        break;
+    case LoxType::Class:
+        interpreter->addUser(classy);
+        break;
+    case LoxType::Instance:
+        interpreter->addUser(instance);
+        break;
+    default:
+        throw std::logic_error("Expected object to be callable or class.");
+    }
 }
 
 LoxObject::LoxObject(Token tok)
-    : string{}, function{}, classy{}, number{}, type{}, boolean{}
 {
     switch (tok.type)
     {
@@ -53,7 +114,8 @@ LoxObject::LoxObject(Token tok)
     }
 }
 
-LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject> args)
+LoxObject LoxObject::operator()(Interpreter& intp,
+                                std::vector<LoxObject> args)
 {
     if (type == LoxType::Class)
     {
@@ -64,7 +126,7 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
                 + std::to_string(args.size()) + "\n";
             throw LoxError(msg);
         }
-        return (*classy)(interpreter, args);
+        return (*classy)(intp, args);
     }
     if (type != LoxType::Callable)
     {
@@ -77,7 +139,7 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
             + std::to_string(args.size()) + "\n";
         throw LoxError(msg);
     }
-    return (*function)(interpreter, args);
+    return (*function)(intp, args);
 }
 
 LoxObject LoxObject::get(Token name)
@@ -86,7 +148,7 @@ LoxObject LoxObject::get(Token name)
     {
         throw LoxError("Cannot get property from non-class instance.");
     }
-    return instance->get(name, instance);
+    return instance->get(name);
 }
 
 LoxObject LoxObject::set(Token name, LoxObject value)

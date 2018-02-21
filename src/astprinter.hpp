@@ -105,12 +105,12 @@ public:
     ExprRetType visitAssignmentExpr(AssignmentExpr& as) override
     {
         parenthesize("=" + as.name.lexeme, {as.val.get()});
-        return "";
+        return LoxObject();
     }
     ExprRetType visitBinaryExpr(BinaryExpr& bin) override
     {
         parenthesize(bin.oper.lexeme, {bin.left.get(), bin.right.get()});
-        return "";
+        return LoxObject();
     }
     ExprRetType visitCallExpr(CallExpr& ce) override
     {
@@ -122,29 +122,29 @@ public:
             expr->accept(*this);
         }
         m_ast += ")";
-        return "";
+        return LoxObject();
     }
     ExprRetType visitGetExpr(GetExpr& ge) override
     {
         m_ast += "(. ";
         ge.object->accept(*this);
         m_ast += " " + ge.name.lexeme + ")";
-        return "";
+        return LoxObject();
     }
     ExprRetType visitGroupingExpr(GroupingExpr& grp) override
     {
         parenthesize("group", {grp.expr.get()});
-        return "";
+        return LoxObject();
     }
     ExprRetType visitLiteralExpr(LiteralExpr& lit) override
     {
         m_ast += (std::string)lit.value;
-        return "";
+        return LoxObject();
     }
     ExprRetType visitLogicalExpr(LogicalExpr& le) override
     {
         parenthesize(le.oper.lexeme, {le.left.get(), le.right.get()});
-        return "";
+        return LoxObject();
     }
     ExprRetType visitSetExpr(SetExpr& se) override
     {
@@ -153,27 +153,27 @@ public:
         m_ast += " " + se.name.lexeme + " ";
         se.value->accept(*this);
         m_ast += ")";
-        return "";
+        return LoxObject();
     }
     ExprRetType visitSuperExpr(SuperExpr& se) override
     {
         m_ast += "(super " + se.method.lexeme + ")";
-        return "";
+        return LoxObject();
     }
     ExprRetType visitThisExpr(ThisExpr&) override
     {
         m_ast += "this";
-        return "";
+        return LoxObject();
     }
     ExprRetType visitUnaryExpr(UnaryExpr& un) override
     {
         parenthesize(un.oper.lexeme, {un.right.get()});
-        return "";
+        return LoxObject();
     }
     ExprRetType visitVariableExpr(VariableExpr& ve) override
     {
         m_ast += ve.name.lexeme;
-        return "";
+        return LoxObject();
     }
 
     void print(Expr* expr)

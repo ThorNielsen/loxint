@@ -32,7 +32,8 @@ public:
     size_t arity() const override { return 0; }
     LoxObject operator()(Interpreter&, Arguments)
     {
-        return std::chrono::duration<double>(Clock::now() - begin).count();
+        double t = std::chrono::duration<double>(Clock::now() - begin).count();
+        return LoxObject(t);
     }
     std::string name() const override
     {
@@ -112,7 +113,7 @@ public:
         if (func != methods.end())
         {
             PEnvironment env = std::make_shared<Environment>(func->second->closure);
-            env->assign("this", instance);
+            env->assign("this", LoxObject(instance));
             return LoxObject((LoxFunction*)nullptr);//LoxObject(std::make_shared<LoxFunction>(*func->second, env));
         }
         if (super) return super->function(pname, instance);

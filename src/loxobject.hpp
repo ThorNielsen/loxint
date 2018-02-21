@@ -27,17 +27,17 @@ class LoxObject
 public:
     LoxObject()
         : type{LoxType::Nil} {}
-    LoxObject(bool b)
+    explicit LoxObject(bool b)
         : type{LoxType::Bool}, boolean{b} {}
-    LoxObject(double num)
+    explicit LoxObject(double num)
         : number{num}, type{LoxType::Number} {}
-    LoxObject(std::string s)
+    explicit LoxObject(std::string s)
         : string{s}, type{LoxType::String} {}
-    LoxObject(Callable* c, Interpreter* intp);
-    LoxObject(LoxClass* lc, Interpreter* intp);
-    LoxObject(LoxInstance* li, Interpreter* intp);
+    explicit LoxObject(Callable* c, Interpreter* intp);
+    explicit LoxObject(LoxClass* lc, Interpreter* intp);
+    explicit LoxObject(LoxInstance* li, Interpreter* intp);
 
-    LoxObject(Token tok);
+    explicit LoxObject(Token tok);
 
     LoxObject(const LoxObject&);
     LoxObject& operator=(const LoxObject&);

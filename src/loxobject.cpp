@@ -130,6 +130,8 @@ LoxObject LoxObject::operator()(Interpreter& intp,
     }
     if (type != LoxType::Callable)
     {
+        std::cout << function << std::endl;
+        std::cout << "TYPE IS " << (int) type  << std::endl;
         throw LoxError("Cannot call non-callable.");
     }
     if (args.size() != function->arity())

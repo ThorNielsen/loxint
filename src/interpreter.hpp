@@ -26,9 +26,8 @@ public:
         m_env = m_globs;
         std::unique_ptr<Callable> clock{static_cast<Callable*>(new TimeFunction())};
         auto* loc = clock.get();
-        m_callables[loc] = std::move(clock);
-        m_calluse[loc] = 1;
-        m_globs->assign(clock->name(), loc);
+        m_callables[loc] = {std::move(clock), 0};
+        m_globs->assign(loc->name(), LoxObject(loc, this));
     }
     ~Interpreter()
     {
@@ -77,7 +76,7 @@ public:
 
     StmtRetType visitClassStmt(ClassStmt& cs) override
     {
-        LoxObject super = nullptr;
+        LoxObject super;
         if (cs.super != nullptr)
         {
             super = cs.super->accept(*this);
@@ -89,15 +88,13 @@ public:
             m_env->assign("super", super);
         }
         auto classy = make_unique<LoxClass>(&cs, this, super.classy, m_env);
-        auto* ptr = classy.get();
-        m_classes[ptr] = {std::move(classy), 0};
-        m_derived[ptr] = {};
-        m_instances[ptr] = {};
+        auto* loc = classy.get();
+        m_classes[loc] = {std::move(classy), 0};
         if (cs.super != nullptr)
         {
             m_env = m_env->enclosing;
         }
-        m_env->assign(cs.name.lexeme, LoxObject(ptr));
+        m_env->assign(cs.name.lexeme, LoxObject(loc));
     }
 
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
@@ -113,9 +110,8 @@ public:
         }
         auto func = make_unique<LoxFunction>(&fs, this, m_env);
         auto* loc = func.get();
-        m_callables[loc] = std::move(func);
-        m_calluse[loc] = 1;
-        m_env->assign(fs.name.lexeme, LoxObject(loc));
+        m_callables[loc] = {std::move(func), 0};
+        m_env->assign(fs.name.lexeme, LoxObject(loc, this));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -222,7 +218,6 @@ public:
 
     void registerFunction(LoxFunction* func, PEnvironment env)
     {
-        std::cerr << "Registering " << func << "\n";
         if (m_funcenvs.find(func) != m_funcenvs.end())
         {
             throw std::runtime_error("Function already registered.");
@@ -232,7 +227,6 @@ public:
 
     void deleteFunction(LoxFunction* func)
     {
-        std::cerr << "Deleting " << func << "\n";
         if (m_funcenvs.find(func) == m_funcenvs.end())
         {
             throw std::runtime_error("Failed to find function to delete.\n");
@@ -245,60 +239,32 @@ public:
         return m_funcenvs[func];
     }
 
-    void registerClass(LoxClass* classy)
+    void addUser(Callable* c)
     {
-        std::cout << "Constructing " << classy << std::endl;
-        if (m_classes.find(classy) == m_classes.end())
+        if (m_callables.find(c) == m_callables.end())
         {
-            throw std::runtime_error("Tried to register non-existing class.");
+            throw std::logic_error("Cannot add user to imaginary callable.");
         }
-        ++m_classes[classy].second;
+        ++m_callables[c].second;
     }
 
-    void deleteClass(LoxClass* classy)
+    void addUser(LoxClass* lc)
     {
-        std::cout << "Deleting " << classy << std::endl;
-        if (m_classes.find(classy) == m_classes.end())
+        ++m_classes[lc].second;
+    }
+
+    void addUser(LoxInstance* li)
+    {
+        ++m_instances[li].second;
+    }
+
+    void removeUser(Callable* c)
+    {
+        --m_callables[c].second;
+        if (!m_callables[c].second)
         {
-            throw std::runtime_error("Tried to delete non-existing class.");
+            m_callables.erase(c);
         }
-        --m_classes[classy].second;
-        if (!m_classes[classy].second)
-        {
-            if (m_derived.find(classy) != m_derived.end()
-                && !m_derived[classy].empty())
-            {
-                throw std::runtime_error("Deleted super before subclass(es).");
-            }
-            m_derived.erase(classy);
-            if (m_instances.find(classy) != m_instances.end()
-                && !m_instances[classy].empty())
-            {
-                throw std::runtime_error("Deleted class before instances.");
-            }
-            m_instances.erase(classy);
-            m_classes.erase(classy);
-        }
-    }
-
-    void addUser(Callable*)
-    {
-
-    }
-
-    void addUser(LoxClass*)
-    {
-
-    }
-
-    void addUser(LoxInstance*)
-    {
-
-    }
-
-    void removeUser(Callable*)
-    {
-
     }
 
     void removeUser(LoxClass*)
@@ -325,18 +291,11 @@ private:
     std::vector<std::unique_ptr<Stmt>> m_stmts;
     std::map<Expr*, size_t> m_locals;
 
-    std::map<Callable*, std::unique_ptr<Callable>> m_callables;
-    std::map<Callable*, size_t> m_calluse;
-
-
-
+    std::map<Callable*, std::pair<std::unique_ptr<Callable>, size_t>> m_callables;
+    std::map<LoxClass*, std::pair<std::unique_ptr<LoxClass>, size_t>> m_classes;
+    std::map<LoxInstance*, std::pair<std::unique_ptr<LoxInstance>, size_t>> m_instances;
 
     std::map<LoxFunction*, PEnvironment> m_funcenvs;
-
-    std::map<LoxClass*, std::pair<std::unique_ptr<LoxClass>, size_t>> m_classes;
-    // m_derived[super] -> {derived1*, derived2*, ...}
-    std::map<LoxClass*, std::set<LoxClass*>> m_derived;
-    std::map<LoxClass*, std::set<LoxInstance*>> m_instances;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

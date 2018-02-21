@@ -6,7 +6,7 @@
 LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* intp,
                          PEnvironment enclosing, bool init)
 {
-    std::cerr << "func() -- " << this << "\n";
+    //std::cerr << "func() -- " << this << "\n";
     interpreter = intp;
     fname = stmt->name;
     params = stmt->params;
@@ -19,7 +19,7 @@ LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* intp,
 LoxFunction::LoxFunction(LoxFunction& other,
                          PEnvironment enclosing)
 {
-    std::cerr << "func(func) -- " << this << "\n";
+    //std::cerr << "func(func) -- " << this << "\n";
     fname = other.fname;
     params = other.params;
     statements = other.statements;
@@ -31,7 +31,7 @@ LoxFunction::LoxFunction(LoxFunction& other,
 
 LoxFunction::~LoxFunction()
 {
-    std::cerr << "~func() -- " << this << "\n";
+    //std::cerr << "~func() -- " << this << "\n";
     interpreter->deleteFunction(this);
 }
 

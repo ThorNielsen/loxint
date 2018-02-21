@@ -76,6 +76,10 @@ public:
     {
         m_vars.erase(name);
     }
+    void clear()
+    {
+        m_vars.clear();
+    }
     const PEnvironment enclosing;
 private:
     std::map<std::string, LoxObject> m_vars;

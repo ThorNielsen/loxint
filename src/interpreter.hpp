@@ -20,7 +20,17 @@ public:
         auto clock = std::shared_ptr<Callable>(new TimeFunction());
         m_globs->assign(clock->name(), clock);
     }
-    ~Interpreter() { }
+    ~Interpreter()
+    {
+        // Manually delete objects since functions assume their interpreter is
+        // valid when they are destroyed.
+        m_globs->clear();
+        m_env->clear();
+        for (auto& fe : m_funcenvs)
+        {
+            fe.second->clear();
+        }
+    }
 
     void interpret(std::vector<std::unique_ptr<Stmt>>&& statements)
     {
@@ -207,6 +217,10 @@ public:
 
     void deleteFunction(LoxFunction* func)
     {
+        if (m_funcenvs.find(func) == m_funcenvs.end())
+        {
+            throw std::runtime_error("Failed to find function to delete.\n");
+        }
         m_funcenvs.erase(func);
     }
 

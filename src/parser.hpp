@@ -202,7 +202,7 @@ private:
             }
         }
 
-        PExpr cond = PExpr(new LiteralExpr(true));
+        PExpr cond = PExpr(new LiteralExpr(LoxObject(true)));
         if (!match({TokenType::Semicolon}))
         {
             cond = expression();
@@ -402,7 +402,7 @@ private:
                    TokenType::Nil, TokenType::Number,
                    TokenType::String}))
         {
-            return PExpr(new LiteralExpr(previous()));
+            return PExpr(new LiteralExpr(LoxObject(previous())));
         }
         if (match({TokenType::Super}))
         {

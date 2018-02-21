@@ -16,8 +16,7 @@ class Callable
 public:
     virtual ~Callable() {}
     virtual size_t arity() const = 0;
-    virtual LoxObject operator()(Interpreter&, Arguments args,
-                                 std::shared_ptr<Callable> self) = 0;
+    virtual LoxObject operator()(Interpreter&, Arguments args) = 0;
     virtual std::string name() const = 0;
 };
 
@@ -31,9 +30,10 @@ public:
     }
     ~TimeFunction() {}
     size_t arity() const override { return 0; }
-    LoxObject operator()(Interpreter&, Arguments, std::shared_ptr<Callable>)
+    LoxObject operator()(Interpreter&, Arguments)
     {
-        return std::chrono::duration<double>(Clock::now() - begin).count();
+        double t = std::chrono::duration<double>(Clock::now() - begin).count();
+        return LoxObject(t);
     }
     std::string name() const override
     {
@@ -49,109 +49,55 @@ public:
     // Warning: This stores a non-owning pointer to the function declaration
     // statements. These must continue to be available for as long as this
     // object lives.
-    LoxFunction(FunctionStmt* stmt, PEnvironment enclosing, bool init = false)
-    {
-        recCount = 0;
-        fname = stmt->name;
-        params = stmt->params;
-        statements = stmt->statements.get();
-        closure = enclosing->copy();
-        closure->remove(fname.lexeme);
-        initialiser = init;
-    }
-    LoxFunction(LoxFunction& other, PEnvironment enclosing)
-    {
-        recCount = 0;
-        fname = other.fname;
-        params = other.params;
-        statements = other.statements;
-        closure = enclosing;
-        initialiser = other.initialiser;
-    }
+    LoxFunction(FunctionStmt* stmt, Interpreter* intp,
+                PEnvironment enclosing, bool init = false);
+    LoxFunction(LoxFunction& other, PEnvironment enclosing);
 
-    ~LoxFunction() { }
+    ~LoxFunction();
 
 
     size_t arity() const override { return params.size(); }
-    LoxObject operator()(Interpreter& in, Arguments args,
-                         std::shared_ptr<Callable>) override;
+    LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return fname.lexeme; }
 private:
+    PEnvironment getClosure();
+
     friend class LoxClass;
     friend class LoxInstance;
-    PEnvironment closure;
+    Interpreter* interpreter;
     Token fname;
     std::vector<Token> params;
     BlockStmt* statements;
-    size_t recCount;
     bool initialiser;
 };
 
 class LoxInstance;
 
-class LoxClass : public Callable
+class LoxClass
 {
 public:
-    LoxClass(ClassStmt* stmt, std::shared_ptr<LoxClass> superclass,
-             PEnvironment enclosing)
-    {
-        instances = 0;
-        if (superclass.get() == this)
-        {
-            throw std::logic_error("Trying to make a class a subclass of itself");
-        }
-        super = superclass;
-        cname = stmt->name;
-        for (auto& f : stmt->methods)
-        {
-            auto func = std::make_shared<LoxFunction>(f.get(), enclosing,
-                                                      f->name.lexeme == "init");
-            methods[f->name.lexeme] = func;
-        }
-    }
-    ~LoxClass()
-    {
-        // Todo: Fix memory leak.
-        /*if (instances)
-        {
-            std::cerr << instances << " instances of " << name() << " left!\n";
-            throw std::logic_error("Deleted class before its instances.");
-        }*/
-    }
-    size_t arity() const override
+    LoxClass(ClassStmt* stmt, Interpreter* intp, LoxClass* superclass,
+             PEnvironment enclosing);
+    ~LoxClass() { }
+    size_t arity() const
     {
         auto method = methods.find("init");
         if (method != methods.end())
         {
-            return method->second->arity();
+            return method->second.function->arity();
         }
         return 0;
     }
-    LoxObject operator()(Interpreter& in, Arguments args,
-                         std::shared_ptr<Callable>) override;
-    std::string name() const override { return cname.lexeme; }
-    LoxObject function(Token pname, std::shared_ptr<LoxInstance> thisInstance)
-    {
-        auto func = methods.find(pname.lexeme);
-        if (func != methods.end())
-        {
-            PEnvironment env = std::make_shared<Environment>(func->second->closure);
-            env->assign("this", thisInstance);
-            return LoxObject(std::make_shared<LoxFunction>(*func->second, env));
-        }
-        if (super) return super->function(pname, thisInstance);
-        throw LoxError("Could not find " + pname.lexeme + ".");
-    }
+    LoxObject operator()(Interpreter& in, Arguments args);
+    std::string name() const { return cname.lexeme; }
+    LoxObject function(Token pname, LoxInstance* instance);
 private:
     friend class LoxInstance;
 
-
-    void registerInstance() { ++instances; }
-    void removeInstance() { --instances; }
-    std::shared_ptr<LoxClass> super;
-    std::map<std::string, std::shared_ptr<LoxFunction>> methods;
+    Interpreter* interpreter;
+    LoxClass* super;
+    std::map<std::string, LoxObject> methods;
     Token cname;
-    size_t instances;
 };
 
 class LoxInstance
@@ -159,25 +105,20 @@ class LoxInstance
 public:
     LoxInstance(LoxClass& lc)
         : properties{}, cname(lc.cname), classy{&lc}
-    {
-        classy->registerInstance();
-    }
-    ~LoxInstance()
-    {
-        classy->removeInstance();
-    }
+    { }
+    ~LoxInstance() { }
     std::string name()
     {
         return cname.lexeme;
     }
-    LoxObject get(Token pname, std::shared_ptr<LoxInstance> thisInstance)
+    LoxObject get(Token pname)
     {
         auto var = properties.find(pname.lexeme);
         if (var != properties.end())
         {
             return var->second;
         }
-        return classy->function(pname, thisInstance);
+        return classy->function(pname, this);
     }
     LoxObject set(Token pname, LoxObject value)
     {

@@ -132,14 +132,14 @@ public:
     {
         resolve(as.val);
         resolveLocal(as, as.name);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitBinaryExpr(BinaryExpr& bs) override
     {
         resolve(bs.left);
         resolve(bs.right);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitCallExpr(CallExpr& ce) override
@@ -150,38 +150,38 @@ public:
         {
             resolve(arg);
         }
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitGetExpr(GetExpr& ge) override
     {
         resolve(ge.object);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitGroupingExpr(GroupingExpr& gs) override
     {
         resolve(gs.expr);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitLiteralExpr(LiteralExpr&) override
     {
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitLogicalExpr(LogicalExpr& ls) override
     {
         resolve(ls.left);
         resolve(ls.right);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitSetExpr(SetExpr& se) override
     {
         resolve(se.value);
         resolve(se.object);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitSuperExpr(SuperExpr& se) override
@@ -197,7 +197,7 @@ public:
                        "Cannot use 'super' in a class without a superclass.");
         }
         resolveLocal(se, se.keyword);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitThisExpr(ThisExpr& te) override
@@ -208,7 +208,7 @@ public:
                        "Cannot use 'this' outside of a class.");
         }
         resolveLocal(te, te.keyword);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitVariableExpr(VariableExpr& ve) override
@@ -221,13 +221,13 @@ public:
                        "Variable refers to itself in initialisation.");
         }
         resolveLocal(ve, ve.name);
-        return "";
+        return LoxObject();
     }
 
     ExprRetType visitUnaryExpr(UnaryExpr& ue) override
     {
         resolve(ue.right);
-        return "";
+        return LoxObject();
     }
 private:
     enum class FunctionType

@@ -94,7 +94,7 @@ public:
         {
             m_env = m_env->enclosing;
         }
-        m_env->assign(cs.name.lexeme, LoxObject(loc));
+        m_env->assign(cs.name.lexeme, LoxObject(loc, this));
     }
 
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
@@ -104,14 +104,8 @@ public:
 
     StmtRetType visitFunctionStmt(FunctionStmt& fs) override
     {
-        if (fs.statements == nullptr)
-        {
-            throw LoxError("Function declaration has already been interpreted.");
-        }
-        auto func = make_unique<LoxFunction>(&fs, this, m_env);
-        auto* loc = func.get();
-        m_callables[loc] = {std::move(func), 0};
-        m_env->assign(fs.name.lexeme, LoxObject(loc, this));
+        auto* func = createFunction(&fs, m_env);
+        m_env->assign(fs.name.lexeme, LoxObject(func, this));
     }
 
     StmtRetType visitIfStmt(IfStmt& is) override
@@ -241,10 +235,6 @@ public:
 
     void addUser(Callable* c)
     {
-        if (m_callables.find(c) == m_callables.end())
-        {
-            throw std::logic_error("Cannot add user to imaginary callable.");
-        }
         ++m_callables[c].second;
     }
 
@@ -255,6 +245,7 @@ public:
 
     void addUser(LoxInstance* li)
     {
+        //std::cerr << "Creating LoxInstance!\n";
         ++m_instances[li].second;
     }
 
@@ -267,14 +258,55 @@ public:
         }
     }
 
-    void removeUser(LoxClass*)
+    void removeUser(LoxClass* lc)
     {
-
+        --m_classes[lc].second;
+        if (!m_classes[lc].second)
+        {
+            m_classes.erase(lc);
+        }
     }
 
-    void removeUser(LoxInstance*)
+    void removeUser(LoxInstance* li)
     {
+        //std::cerr << "Removing instance\n";
+        --m_instances[li].second;
+        if (!m_instances[li].second)
+        {
+            m_instances.erase(li);
+        }
+    }
 
+    LoxFunction* createFunction(FunctionStmt* fs, PEnvironment env,
+                                bool classInit = false)
+    {
+        auto func = make_unique<LoxFunction>(fs, this, env, classInit);
+        auto* loc = func.get();
+        m_callables[loc] = {std::move(func), 0};
+        return loc;
+    }
+
+    LoxFunction* createFunction(LoxFunction* fun, PEnvironment env)
+    {
+        auto func = make_unique<LoxFunction>(*fun, env);
+        auto* loc = func.get();
+        m_callables[loc] = {std::move(func), 0};
+        return loc;
+    }
+
+    LoxInstance* createInstance(LoxClass* lc)
+    {
+        auto instance = make_unique<LoxInstance>(*lc);
+        auto* loc = instance.get();
+        m_instances[loc] = {std::move(instance), 0};
+        return loc;
+    }
+
+    LoxInstance* createInstance(LoxClass* lc, Arguments args)
+    {
+        auto* instance = createInstance(lc);
+        instance->get({"init", TokenType::Identifier, 0})(*this, args);
+        return instance;
     }
 
 private:

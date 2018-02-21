@@ -76,54 +76,29 @@ class LoxClass
 {
 public:
     LoxClass(ClassStmt* stmt, Interpreter* intp, LoxClass* superclass,
-             PEnvironment enclosing)
-    {
-        if (superclass == this)
-        {
-            throw std::logic_error("Trying to make a class a subclass of itself");
-        }
-        super = superclass;
-        cname = stmt->name;
-        for (auto& f : stmt->methods)
-        {
-            auto func = std::make_shared<LoxFunction>(f.get(), intp,
-                                                      enclosing,
-                                                      f->name.lexeme == "init");
-            methods[f->name.lexeme] = func;
-        }
-    }
+             PEnvironment enclosing);
     ~LoxClass()
     {
-        std::cerr << "~LoxClass() -- " << this << "\n";
+        ///std::cerr << "~LoxClass() -- " << this << "\n";
     }
     size_t arity() const
     {
         auto method = methods.find("init");
         if (method != methods.end())
         {
-            return method->second->arity();
+            return method->second.function->arity();
         }
         return 0;
     }
     LoxObject operator()(Interpreter& in, Arguments args);
     std::string name() const { return cname.lexeme; }
-    LoxObject function(Token pname, LoxInstance* instance)
-    {
-        auto func = methods.find(pname.lexeme);
-        if (func != methods.end())
-        {
-            PEnvironment env = std::make_shared<Environment>(func->second->closure);
-            env->assign("this", LoxObject(instance));
-            return LoxObject((LoxFunction*)nullptr);//LoxObject(std::make_shared<LoxFunction>(*func->second, env));
-        }
-        if (super) return super->function(pname, instance);
-        throw LoxError("Could not find " + pname.lexeme + ".");
-    }
+    LoxObject function(Token pname, LoxInstance* instance);
 private:
     friend class LoxInstance;
 
+    Interpreter* interpreter;
     LoxClass* super;
-    std::map<std::string, std::shared_ptr<LoxFunction>> methods;
+    std::map<std::string, LoxObject> methods;
     Token cname;
 };
 
@@ -133,11 +108,11 @@ public:
     LoxInstance(LoxClass& lc)
         : properties{}, cname(lc.cname), classy{&lc}
     {
-        std::cerr << "LoxInstance() -- " << this << "\n";
+        ///std::cerr << "LoxInstance() -- " << this << "\n";
     }
     ~LoxInstance()
     {
-        std::cerr << "~LoxInstance() -- " << this << "\n";
+        ///std::cerr << "~LoxInstance() -- " << this << "\n";
     }
     std::string name()
     {

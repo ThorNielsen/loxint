@@ -22,6 +22,7 @@ class Interpreter : public ExprVisitor, public StmtVisitor
 public:
     Interpreter()
     {
+        m_destroying = false;
         m_globs = Environment::createNew(nullptr);
         m_env = m_globs;
         std::unique_ptr<Callable> clock{static_cast<Callable*>(new TimeFunction())};
@@ -35,6 +36,11 @@ public:
         // valid when they are destroyed.
         m_globs->clear();
         m_env->clear();
+        // Note: This is a hack to avoid double-destruction.
+        m_destroying = true;
+        m_instances.clear();
+        m_classes.clear();
+        m_callables.clear();
         m_funcenvs.clear();
     }
 
@@ -223,6 +229,7 @@ public:
     {
         if (m_funcenvs.find(func) == m_funcenvs.end())
         {
+            std::cerr << "\033[31m" << func << "\033[0m\n";
             throw std::runtime_error("Failed to find function to delete.\n");
         }
         m_funcenvs.erase(func);
@@ -245,12 +252,12 @@ public:
 
     void addUser(LoxInstance* li)
     {
-        //std::cerr << "Creating LoxInstance!\n";
         ++m_instances[li].second;
     }
 
     void removeUser(Callable* c)
     {
+        if (m_destroying) return;
         --m_callables[c].second;
         if (!m_callables[c].second)
         {
@@ -260,6 +267,7 @@ public:
 
     void removeUser(LoxClass* lc)
     {
+        if (m_destroying) return;
         --m_classes[lc].second;
         if (!m_classes[lc].second)
         {
@@ -269,7 +277,7 @@ public:
 
     void removeUser(LoxInstance* li)
     {
-        //std::cerr << "Removing instance\n";
+        if (m_destroying) return;
         --m_instances[li].second;
         if (!m_instances[li].second)
         {
@@ -328,6 +336,8 @@ private:
     std::map<LoxInstance*, std::pair<std::unique_ptr<LoxInstance>, size_t>> m_instances;
 
     std::map<LoxFunction*, PEnvironment> m_funcenvs;
+
+    bool m_destroying;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

@@ -77,10 +77,7 @@ class LoxClass
 public:
     LoxClass(ClassStmt* stmt, Interpreter* intp, LoxClass* superclass,
              PEnvironment enclosing);
-    ~LoxClass()
-    {
-        ///std::cerr << "~LoxClass() -- " << this << "\n";
-    }
+    ~LoxClass() { }
     size_t arity() const
     {
         auto method = methods.find("init");
@@ -107,13 +104,8 @@ class LoxInstance
 public:
     LoxInstance(LoxClass& lc)
         : properties{}, cname(lc.cname), classy{&lc}
-    {
-        ///std::cerr << "LoxInstance() -- " << this << "\n";
-    }
-    ~LoxInstance()
-    {
-        ///std::cerr << "~LoxInstance() -- " << this << "\n";
-    }
+    {}
+    ~LoxInstance() { }
     std::string name()
     {
         return cname.lexeme;

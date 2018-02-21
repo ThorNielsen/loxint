@@ -6,7 +6,6 @@
 LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* intp,
                          PEnvironment enclosing, bool init)
 {
-    ///std::cerr << "LoxFunction() -- " << this << "\n";
     interpreter = intp;
     fname = stmt->name;
     params = stmt->params;
@@ -19,7 +18,6 @@ LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* intp,
 LoxFunction::LoxFunction(LoxFunction& other,
                          PEnvironment enclosing)
 {
-    ///std::cerr << "LoxFunction(func) -- " << this << "\n";
     fname = other.fname;
     params = other.params;
     statements = other.statements;
@@ -31,7 +29,6 @@ LoxFunction::LoxFunction(LoxFunction& other,
 
 LoxFunction::~LoxFunction()
 {
-    ///std::cerr << "~LoxFunction() -- " << this << "\n";
     interpreter->deleteFunction(this);
 }
 
@@ -75,7 +72,6 @@ LoxObject LoxClass::operator()(Interpreter& in, Arguments args)
 LoxClass::LoxClass(ClassStmt* stmt, Interpreter* intp, LoxClass* superclass,
                    PEnvironment enclosing)
 {
-    ///std::cerr << "LoxClass() -- " << this << "\n";
     if (superclass == this)
     {
         throw std::logic_error("Trying to make a class a subclass of itself");
@@ -99,7 +95,7 @@ LoxObject LoxClass::function(Token pname, LoxInstance* instance)
         LoxFunction* fun = static_cast<LoxFunction*>(func->second.function);
         PEnvironment env =
             std::make_shared<Environment>(fun->closure);
-        env->assign("this", LoxObject(instance));
+        env->assign("this", LoxObject(instance, interpreter));
 
         return LoxObject(interpreter->createFunction(fun, env), interpreter);
     }

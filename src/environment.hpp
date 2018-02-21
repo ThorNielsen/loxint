@@ -71,7 +71,7 @@ public:
     void assign(size_t dist, std::string name, LoxObject lo)
     {
         if (!dist) assign(name, lo);
-        else assign(dist-1, name, lo);
+        else enclosing->assign(dist-1, name, lo);
     }
     void assign(std::string name, LoxObject lo)
     {

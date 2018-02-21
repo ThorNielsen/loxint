@@ -159,6 +159,14 @@ public:
         {
             m_env->assign(m_locals[&as], as.name.lexeme, value);
         }
+        else
+        {
+            if (!m_globs->exists(as.name.lexeme))
+            {
+                throw std::runtime_error("Cannot assign to undeclared variable.");
+            }
+            m_globs->assign(as.name.lexeme, value);
+        }
         return value;
     }
 

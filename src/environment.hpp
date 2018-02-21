@@ -51,6 +51,11 @@ public:
     LoxObject& get(size_t dist, std::string name)
     {
         if (!dist) return get(name);
+        if (!enclosing)
+        {
+            throw std::runtime_error("Tried to get variable in non-existing "
+                                     "environment.");
+        }
         return enclosing->get(dist-1, name);
     }
     LoxObject& get(std::string name)

@@ -32,6 +32,11 @@ LoxFunction::~LoxFunction()
     interpreter->deleteFunction(this);
 }
 
+PEnvironment LoxFunction::getClosure()
+{
+    return interpreter->getFunctionEnvironment(this);
+}
+
 LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
     auto cl = interpreter->getFunctionEnvironment(this);
@@ -51,7 +56,7 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
     {
         return lo;
     }
-    if (initialiser) return closure->get(0, "this");
+    if (initialiser) return getClosure()->get(0, "this");
     return LoxObject();
 }
 
@@ -94,7 +99,7 @@ LoxObject LoxClass::function(Token pname, LoxInstance* instance)
     {
         LoxFunction* fun = static_cast<LoxFunction*>(func->second.function);
         PEnvironment env =
-            std::make_shared<Environment>(fun->closure);
+            std::make_shared<Environment>(fun->getClosure());
         env->assign("this", LoxObject(instance, interpreter));
 
         return LoxObject(interpreter->createFunction(fun, env), interpreter);

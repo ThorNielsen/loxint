@@ -60,9 +60,10 @@ public:
     LoxObject operator()(Interpreter& in, Arguments args) override;
     std::string name() const override { return fname.lexeme; }
 private:
+    PEnvironment getClosure();
+
     friend class LoxClass;
     friend class LoxInstance;
-    PEnvironment closure = nullptr;
     Interpreter* interpreter;
     Token fname;
     std::vector<Token> params;

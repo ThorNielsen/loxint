@@ -93,6 +93,7 @@ public:
             m_env = Environment::createNew(m_env);
             m_env->assign("super", super);
         }
+
         auto classy = make_unique<LoxClass>(&cs, this, super.classy, m_env);
         auto* loc = classy.get();
         m_classes[loc] = {std::move(classy), 0};
@@ -189,9 +190,9 @@ public:
 
     ExprRetType visitSuperExpr(SuperExpr& se) override
     {
-        auto super = m_env->get(m_locals[&se], "super").classy;
-        auto object = m_env->get(m_locals[&se]-1, "this").instance;
-        return super->function(se.method, object);
+        auto object = m_env->get(m_locals[&se]-1, "this");
+        auto super = m_env->get(m_locals[&se], "super");
+        return super.classy->function(se.method, object.instance);
     }
 
     ExprRetType visitThisExpr(ThisExpr& te) override

@@ -311,13 +311,6 @@ public:
         return loc;
     }
 
-    LoxInstance* createInstance(LoxClass* lc, Arguments args)
-    {
-        auto* instance = createInstance(lc);
-        instance->get({"init", TokenType::Identifier, 0})(*this, args);
-        return instance;
-    }
-
 private:
     LoxObject& getVariable(Token name, Expr* expr)
     {

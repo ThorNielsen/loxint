@@ -68,8 +68,10 @@ LoxObject LoxClass::operator()(Interpreter& in, Arguments args)
     }
     if (methods.find("init") != methods.end())
     {
-        return LoxObject(interpreter->createInstance(this, args),
-                         interpreter);
+        auto instance = LoxObject(interpreter->createInstance(this),
+                                  interpreter);
+        instance.instance->get({"init", TokenType::Identifier, 0})(in, args);
+        return instance;
     }
     return LoxObject(interpreter->createInstance(this), interpreter);
 }

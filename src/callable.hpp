@@ -105,7 +105,7 @@ class LoxInstance
 public:
     LoxInstance(LoxClass& lc)
         : properties{}, cname(lc.cname), classy{&lc}
-    {}
+    { }
     ~LoxInstance() { }
     std::string name()
     {

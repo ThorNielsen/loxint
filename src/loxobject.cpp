@@ -1,10 +1,24 @@
 #include "loxobject.hpp"
 
 #include "callable.hpp"
+#include "interpreter.hpp"
 #include <sstream>
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 #pragma GCC diagnostic ignored "-Wswitch-enum"
+
+LoxClassHolder::LoxClassHolder(Interpreter* intp, LoxClass* lc)
+{
+    interpreter = intp;
+    held = lc;
+    interpreter->registerClass(held);
+}
+
+LoxClassHolder::~LoxClassHolder()
+{
+    if (interpreter)
+        interpreter->deleteClass(held);
+}
 
 LoxObject::LoxObject(Token tok)
     : string{}, function{}, classy{}, number{}, type{}, boolean{}
@@ -50,7 +64,7 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
                 + std::to_string(args.size()) + "\n";
             throw LoxError(msg);
         }
-        return (*classy)(interpreter, args, classy);
+        return (*classy)(interpreter, args);
     }
     if (type != LoxType::Callable)
     {
@@ -63,7 +77,7 @@ LoxObject LoxObject::operator()(Interpreter& interpreter, std::vector<LoxObject>
             + std::to_string(args.size()) + "\n";
         throw LoxError(msg);
     }
-    return (*function)(interpreter, args, function);
+    return (*function)(interpreter, args);
 }
 
 LoxObject LoxObject::get(Token name)
@@ -146,7 +160,7 @@ LoxObject::operator bool() const
     case LoxType::Bool:   return boolean;
     case LoxType::Number: return number != 0.;
     case LoxType::String: return string != "";
-    case LoxType::Callable: return true; // Callables and classe are
+    case LoxType::Callable: return true; // Callables and classes are
     case LoxType::Class: return true; // automatically true by definition.
     case LoxType::Instance: return true;
     }

@@ -22,6 +22,22 @@ class Callable;
 class LoxClass;
 class LoxInstance;
 
+class LoxClassHolder
+{
+public:
+    LoxClassHolder() : interpreter{nullptr}, held{nullptr} {}
+    LoxClassHolder(Interpreter* intp, LoxClass* lc);
+    ~LoxClassHolder();
+    LoxClass* get() { return held; }
+    LoxClass* operator->() { return held; }
+    const LoxClass* operator->() const { return held; }
+    LoxClass& operator*() { return *held; }
+    const LoxClass& operator*() const { return *held; }
+private:
+    Interpreter* interpreter;
+    LoxClass* held;
+};
+
 class LoxObject
 {
 public:
@@ -35,8 +51,8 @@ public:
         : string{s}, function{}, classy{}, instance{}, number{}, type{LoxType::String}, boolean{} {}
     LoxObject(std::shared_ptr<Callable> c)
         : string{}, function{c}, classy{}, instance{}, number{}, type{LoxType::Callable}, boolean{} {}
-    LoxObject(std::shared_ptr<LoxClass> c)
-        : string{}, function{}, classy{c}, instance{}, number{}, type{LoxType::Class}, boolean{} {}
+    LoxObject(Interpreter* intp, LoxClass* lc)
+        : string{}, function{}, classy{intp, lc}, instance{}, number{}, type{LoxType::Class}, boolean{} {}
     LoxObject(std::shared_ptr<LoxInstance> li)
         : string{}, function{}, classy{}, instance{li}, number{}, type{LoxType::Instance}, boolean{} {}
 
@@ -60,7 +76,7 @@ public:
 
     std::string string;
     std::shared_ptr<Callable> function;
-    std::shared_ptr<LoxClass> classy;
+    LoxClassHolder classy;
     std::shared_ptr<LoxInstance> instance;
     double number;
     LoxType type;

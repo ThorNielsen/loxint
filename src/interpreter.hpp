@@ -8,7 +8,14 @@
 #include "stmt.hpp"
 #include <map>
 #include <memory>
+#include <set>
 #include <vector>
+
+template<typename T, typename... Ts>
+std::unique_ptr<T> make_unique(Ts&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Ts>(args)...));
+}
 
 class Interpreter : public ExprVisitor, public StmtVisitor
 {
@@ -26,10 +33,7 @@ public:
         // valid when they are destroyed.
         m_globs->clear();
         m_env->clear();
-        for (auto& fe : m_funcenvs)
-        {
-            fe.second->clear();
-        }
+        m_funcenvs.clear();
     }
 
     void interpret(std::vector<std::unique_ptr<Stmt>>&& statements)
@@ -81,12 +85,16 @@ public:
             m_env = Environment::createNew(m_env);
             m_env->assign("super", super);
         }
-        auto classy = std::make_shared<LoxClass>(&cs, super.classy, m_env);
+        auto classy = make_unique<LoxClass>(&cs, this, super.classy.get(), m_env);
+        auto* ptr = classy.get();
+        m_classes[ptr] = {std::move(classy), 0};
+        m_derived[ptr] = {};
+        m_instances[ptr] = {};
         if (cs.super != nullptr)
         {
             m_env = m_env->enclosing;
         }
-        m_env->assign(cs.name.lexeme, LoxObject(classy));
+        m_env->assign(cs.name.lexeme, LoxObject(ptr));
     }
 
     StmtRetType visitExpressionStmt(ExpressionStmt& es) override
@@ -208,6 +216,7 @@ public:
 
     void registerFunction(LoxFunction* func, PEnvironment env)
     {
+        std::cerr << "Registering " << func << "\n";
         if (m_funcenvs.find(func) != m_funcenvs.end())
         {
             throw std::runtime_error("Function already registered.");
@@ -217,6 +226,7 @@ public:
 
     void deleteFunction(LoxFunction* func)
     {
+        std::cerr << "Deleting " << func << "\n";
         if (m_funcenvs.find(func) == m_funcenvs.end())
         {
             throw std::runtime_error("Failed to find function to delete.\n");
@@ -227,6 +237,42 @@ public:
     PEnvironment getFunctionEnvironment(LoxFunction* func)
     {
         return m_funcenvs[func];
+    }
+
+    void registerClass(LoxClass* classy)
+    {
+        std::cout << "Constructing " << classy << std::endl;
+        if (m_classes.find(classy) == m_classes.end())
+        {
+            throw std::runtime_error("Tried to register non-existing class.");
+        }
+        ++m_classes[classy].second;
+    }
+
+    void deleteClass(LoxClass* classy)
+    {
+        std::cout << "Deleting " << classy << std::endl;
+        if (m_classes.find(classy) == m_classes.end())
+        {
+            throw std::runtime_error("Tried to delete non-existing class.");
+        }
+        --m_classes[classy].second;
+        if (!m_classes[classy].second)
+        {
+            if (m_derived.find(classy) != m_derived.end()
+                && !m_derived[classy].empty())
+            {
+                throw std::runtime_error("Deleted super before subclass(es).");
+            }
+            m_derived.erase(classy);
+            if (m_instances.find(classy) != m_instances.end()
+                && !m_instances[classy].empty())
+            {
+                throw std::runtime_error("Deleted class before instances.");
+            }
+            m_instances.erase(classy);
+            m_classes.erase(classy);
+        }
     }
 
 private:
@@ -244,6 +290,11 @@ private:
     std::map<Expr*, size_t> m_locals;
 
     std::map<LoxFunction*, PEnvironment> m_funcenvs;
+
+    std::map<LoxClass*, std::pair<std::unique_ptr<LoxClass>, size_t>> m_classes;
+    // m_derived[super] -> {derived1*, derived2*, ...}
+    std::map<LoxClass*, std::set<LoxClass*>> m_derived;
+    std::map<LoxClass*, std::set<LoxInstance*>> m_instances;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

@@ -3,12 +3,11 @@
 #include "environment.hpp"
 #include "interpreter.hpp"
 
-LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* in,
+LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* intp,
                          PEnvironment enclosing, bool init)
 {
-    std::cerr << "func()\n";
-    interpreter = in;
-    recCount = 0;
+    std::cerr << "func() -- " << this << "\n";
+    interpreter = intp;
     fname = stmt->name;
     params = stmt->params;
     statements = stmt->statements.get();
@@ -17,28 +16,26 @@ LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* in,
     interpreter->registerFunction(this, enclosing->copy());
 }
 
-LoxFunction::LoxFunction(LoxFunction& other, Interpreter* in,
+LoxFunction::LoxFunction(LoxFunction& other,
                          PEnvironment enclosing)
 {
-    std::cerr << "func(func)\n";
-    interpreter = in;
-    recCount = 0;
+    std::cerr << "func(func) -- " << this << "\n";
     fname = other.fname;
     params = other.params;
     statements = other.statements;
     initialiser = other.initialiser;
+    interpreter = other.interpreter;
 
     interpreter->registerFunction(this, enclosing);
 }
 
 LoxFunction::~LoxFunction()
 {
-    std::cerr << "~func()\n";
+    std::cerr << "~func() -- " << this << "\n";
     interpreter->deleteFunction(this);
 }
 
-LoxObject LoxFunction::operator()(Interpreter& in, Arguments args,
-                                  std::shared_ptr<Callable>)
+LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
 {
     auto cl = interpreter->getFunctionEnvironment(this);
     ScopeEnvironment se(in.getEnv(), Environment::createNew(cl));
@@ -61,8 +58,7 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args,
     return LoxObject();
 }
 
-LoxObject LoxClass::operator()(Interpreter& in, Arguments args,
-                               std::shared_ptr<Callable>)
+LoxObject LoxClass::operator()(Interpreter& in, Arguments args)
 {
     auto instance = std::make_shared<LoxInstance>(*this);
     if (methods.find("init") != methods.end())

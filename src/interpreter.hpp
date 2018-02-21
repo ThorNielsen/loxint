@@ -90,7 +90,7 @@ public:
         {
             throw LoxError("Function declaration has already been interpreted.");
         }
-        auto func = std::make_shared<LoxFunction>(&fs, m_env);
+        auto func = std::make_shared<LoxFunction>(&fs, this, m_env);
         m_env->assign(fs.name.lexeme, LoxObject(func));
     }
 
@@ -196,6 +196,25 @@ public:
         m_locals[expr] = depth;
     }
 
+    void registerFunction(LoxFunction* func, PEnvironment env)
+    {
+        if (m_funcenvs.find(func) != m_funcenvs.end())
+        {
+            throw std::runtime_error("Function already registered.");
+        }
+        m_funcenvs[func] = env;
+    }
+
+    void deleteFunction(LoxFunction* func)
+    {
+        m_funcenvs.erase(func);
+    }
+
+    PEnvironment getFunctionEnvironment(LoxFunction* func)
+    {
+        return m_funcenvs[func];
+    }
+
 private:
     LoxObject& getVariable(Token name, Expr* expr)
     {
@@ -209,6 +228,8 @@ private:
     PEnvironment m_env;
     std::vector<std::unique_ptr<Stmt>> m_stmts;
     std::map<Expr*, size_t> m_locals;
+
+    std::map<LoxFunction*, PEnvironment> m_funcenvs;
 };
 
 #endif // INTERPRETER_HPP_INCLUDED

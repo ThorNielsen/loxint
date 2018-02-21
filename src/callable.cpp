@@ -3,12 +3,44 @@
 #include "environment.hpp"
 #include "interpreter.hpp"
 
-LoxObject LoxFunction::operator()(Interpreter& in, Arguments args,
-                                  std::shared_ptr<Callable> self)
+LoxFunction::LoxFunction(FunctionStmt* stmt, Interpreter* in,
+                         PEnvironment enclosing, bool init)
 {
-    auto cl = closure;
-    cl->assign(fname.lexeme, self);
-    ++recCount;
+    //std::cerr << "func()\n";
+    interpreter = in;
+    recCount = 0;
+    fname = stmt->name;
+    params = stmt->params;
+    statements = stmt->statements.get();
+    initialiser = init;
+
+    interpreter->registerFunction(this, enclosing->copy());
+}
+
+LoxFunction::LoxFunction(LoxFunction& other, Interpreter* in,
+                         PEnvironment enclosing)
+{
+    //std::cerr << "func(func)\n";
+    interpreter = in;
+    recCount = 0;
+    fname = other.fname;
+    params = other.params;
+    statements = other.statements;
+    initialiser = other.initialiser;
+
+    interpreter->registerFunction(this, enclosing);
+}
+
+LoxFunction::~LoxFunction()
+{
+    //std::cerr << "~func()\n";
+    interpreter->deleteFunction(this);
+}
+
+LoxObject LoxFunction::operator()(Interpreter& in, Arguments args,
+                                  std::shared_ptr<Callable>)
+{
+    auto cl = interpreter->getFunctionEnvironment(this);
     ScopeEnvironment se(in.getEnv(), Environment::createNew(cl));
     for (size_t i = 0; i < args.size(); ++i)
     {
@@ -23,18 +55,8 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args,
     }
     catch (LoxObject lo)
     {
-        --recCount;
-        if (!recCount) cl->remove(fname.lexeme);
         return lo;
     }
-    catch (...)
-    {
-        --recCount;
-        if (!recCount) cl->remove(fname.lexeme);
-        throw;
-    }
-    --recCount;
-    if (!recCount) cl->remove(fname.lexeme);
     if (initialiser) return closure->get(0, "this");
     return LoxObject();
 }

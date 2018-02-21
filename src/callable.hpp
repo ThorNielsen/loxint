@@ -49,27 +49,11 @@ public:
     // Warning: This stores a non-owning pointer to the function declaration
     // statements. These must continue to be available for as long as this
     // object lives.
-    LoxFunction(FunctionStmt* stmt, PEnvironment enclosing, bool init = false)
-    {
-        recCount = 0;
-        fname = stmt->name;
-        params = stmt->params;
-        statements = stmt->statements.get();
-        closure = enclosing->copy();
-        closure->remove(fname.lexeme);
-        initialiser = init;
-    }
-    LoxFunction(LoxFunction& other, PEnvironment enclosing)
-    {
-        recCount = 0;
-        fname = other.fname;
-        params = other.params;
-        statements = other.statements;
-        closure = enclosing;
-        initialiser = other.initialiser;
-    }
+    LoxFunction(FunctionStmt* stmt, Interpreter* in,
+                PEnvironment enclosing, bool init = false);
+    LoxFunction(LoxFunction& other, Interpreter* in, PEnvironment enclosing);
 
-    ~LoxFunction() { }
+    ~LoxFunction();
 
 
     size_t arity() const override { return params.size(); }
@@ -79,7 +63,8 @@ public:
 private:
     friend class LoxClass;
     friend class LoxInstance;
-    PEnvironment closure;
+    PEnvironment closure = nullptr;
+    Interpreter* interpreter;
     Token fname;
     std::vector<Token> params;
     BlockStmt* statements;
@@ -104,7 +89,8 @@ public:
         cname = stmt->name;
         for (auto& f : stmt->methods)
         {
-            auto func = std::make_shared<LoxFunction>(f.get(), enclosing,
+            auto func = std::make_shared<LoxFunction>(f.get(), nullptr,
+                                                      enclosing,
                                                       f->name.lexeme == "init");
             methods[f->name.lexeme] = func;
         }
@@ -137,7 +123,7 @@ public:
         {
             PEnvironment env = std::make_shared<Environment>(func->second->closure);
             env->assign("this", thisInstance);
-            return LoxObject(std::make_shared<LoxFunction>(*func->second, env));
+            return LoxObject(std::make_shared<LoxFunction>(*func->second, nullptr, env));
         }
         if (super) return super->function(pname, thisInstance);
         throw LoxError("Could not find " + pname.lexeme + ".");

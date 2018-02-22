@@ -307,7 +307,7 @@ private:
     size_t currentScope() const { return m_names.size(); }
     void throwError(size_t line, std::string msg)
     {
-        throw LoxError("Resolver error (line "
+        throw LoxError("Resolver error ("
                        + std::to_string(line) + "): "
                        + msg);
     }

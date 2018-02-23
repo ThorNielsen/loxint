@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <stack>
 #include <vector>
 
 template<typename T, typename... Ts>
@@ -46,6 +47,7 @@ public:
 
     void interpret(std::vector<std::unique_ptr<Stmt>>&& statements)
     {
+        m_returns = {};
         try
         {
             for (auto& statement : statements)
@@ -61,18 +63,19 @@ public:
         {
             std::cerr << "Interpreting error: " << err.what() << "\n";
         }
-        catch (LoxObject lo)
+        if (returns())
         {
             std::cerr << "Interpreting error: Unexpected return.\n";
         }
-
     }
 
     StmtRetType visitBlockStmt(BlockStmt& bs) override
     {
         ScopeEnvironment newScope(m_env, Environment::createNew(m_env));
+        auto retCnt = returns();
         for (auto& statement : bs.statements)
         {
+            if (returns() != retCnt) return;
             if (statement)
             {
                 statement->accept(*this);
@@ -134,8 +137,9 @@ public:
 
     StmtRetType visitReturnStmt(ReturnStmt& rs) override
     {
-        if (rs.value != nullptr) throw rs.value->accept(*this);
-        throw LoxObject();
+        if (rs.value != nullptr)
+            m_returns.push(rs.value->accept(*this));
+        m_returns.push(LoxObject());
     }
 
     StmtRetType visitVariableStmt(VariableStmt& vs) override
@@ -145,8 +149,10 @@ public:
 
     StmtRetType visitWhileStmt(WhileStmt& ws) override
     {
-        while (ws.cond->accept(*this))
+        auto retCnt = returns();
+        while (retCnt == returns() && ws.cond->accept(*this))
         {
+            if (retCnt != returns()) return;
             ws.statement->accept(*this);
         }
     }
@@ -319,7 +325,18 @@ public:
         return loc;
     }
 
+    size_t returns() const { return m_returns.size(); }
+
+    LoxObject getReturn()
+    {
+        auto obj = m_returns.top();
+        m_returns.pop();
+        return obj;
+    }
+
 private:
+
+
     LoxObject& getVariable(Token name, Expr* expr)
     {
         if (m_locals.find(expr) != m_locals.end())
@@ -338,6 +355,8 @@ private:
     std::map<LoxInstance*, std::pair<std::unique_ptr<LoxInstance>, size_t>> m_instances;
 
     std::map<LoxFunction*, PEnvironment> m_funcenvs;
+
+    std::stack<LoxObject> m_returns;
 
     bool m_destroying;
 };

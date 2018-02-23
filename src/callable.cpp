@@ -45,18 +45,14 @@ LoxObject LoxFunction::operator()(Interpreter& in, Arguments args)
     {
         se.env->assign(params[i].lexeme, args[i]);
     }
-    try
+    auto retCnt = interpreter->returns();
+    for (auto& stmt : statements->statements)
     {
-        for (auto& stmt : statements->statements)
-        {
-            stmt->accept(in);
-        }
-    }
-    catch (LoxObject lo)
-    {
-        return lo;
+        if (retCnt != interpreter->returns()) break;
+        stmt->accept(in);
     }
     if (initialiser) return getClosure()->get(0, "this");
+    if (retCnt != interpreter->returns()) return interpreter->getReturn();
     return LoxObject();
 }
 

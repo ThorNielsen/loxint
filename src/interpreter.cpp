@@ -32,7 +32,15 @@ ExprRetType Interpreter::visitCallExpr(CallExpr& ce)
     {
         args.push_back(arg->accept(*this));
     }
-    return callee(*this, args);
+    auto retCnt = returns();
+    auto ret = callee(*this, args);
+    if (retCnt != returns())
+    {
+        ret = m_returns.top();
+        m_returns.pop();
+    }
+
+    return ret;
 }
 
 ExprRetType Interpreter::visitLogicalExpr(LogicalExpr& le)

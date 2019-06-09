@@ -26,6 +26,10 @@ ExprRetType Interpreter::visitBinaryExpr(BinaryExpr& bin)
 
 ExprRetType Interpreter::visitCallExpr(CallExpr& ce)
 {
+    m_calldepth += 1;
+    if (m_calldepth >= MAX_CALL_DEPTH) {
+        throw LoxError(error(ce.paren.line, "Maximum call depth reached."));
+    }
     auto callee = ce.callee->accept(*this);
     std::vector<LoxObject> args;
     for (auto& arg : ce.args)

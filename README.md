@@ -1,2 +1,4 @@
-# Lox interpreter
-This is a C++ implementation of the Lox programming language which is described in the book [Crafting Interpreters](http://www.craftinginterpreters.com/) by [Bob Nystrom](https://github.com/munificent). I have written this interpreter as an exercise while following the book (to learn to write interpreters), so it's probably not production-quality code. All features (and some extra ones suggested in the book) are implemented. Compilation requires a C++11-compliant compiler.
+# Fork of https://github.com/ThorNielsen/loxint
+
+I added a maximum call depth to protect against stack overflows and resulting crashes.  
+A test script can be found at `scripts/stackoverflow.lox`.

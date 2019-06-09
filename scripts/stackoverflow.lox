@@ -1,0 +1,8 @@
+// A (very) bad implementation of the factorial operation.
+fun fact(n) {
+	if (n==1) return 1;
+	else return n * fact(n);
+}
+
+// Will cause a stack overflow.
+fact(5);

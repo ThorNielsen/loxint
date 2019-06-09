@@ -1,6 +1,9 @@
 #ifndef INTERPRETER_HPP_INCLUDED
 #define INTERPRETER_HPP_INCLUDED
 
+#define MAX_CALL_DEPTH 1024
+
+#include "error.hpp"
 #include "callable.hpp"
 #include "environment.hpp"
 #include "expr.hpp"
@@ -335,7 +338,7 @@ public:
     }
 
 private:
-
+    int m_calldepth = 0;
 
     LoxObject& getVariable(Token name, Expr* expr)
     {
